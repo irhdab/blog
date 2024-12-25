@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegraphy</title>
+    <style>
+        html{
+            font-family: monospace;
+        }
+        body {
+            //margin: 0;
+            //padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: dimgrey;
+        }
+        .textss{
+            color: white;
+            font-size: 50px;
+        }
+        .editor-container {
+            width: 75%;
+            //max-width: 800px;
+            background: black;
+            //box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            //border-radius: 8px;
+            //padding: 20px;
+        }
+        .editor {
+            width: 100%;
+            min-height: 300px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.0;
+            color: white;
+        }
+        .editor:empty::before {
+            content: "Write your story.";
+            color: #aaa;
+        }
+        .button-container {
+            text-align: right;
+            //margin-top: 20px;
+        }
+        .publish-button {
+            background-color: azure;
+            color: dimgrey;
+            border: none;
+            //padding: 5px 10px;
+            font-size: 16px;
+            //border-radius: 5px;
+            cursor: pointer;
+        }
+        .publish-button:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+<div class="editor-container">
+    <p class="textss">Blog</p>
+    <hr>
+    <div class="editor" contenteditable="true"></div>
+    <div class="button-container">
+        <button class="publish-button" onclick="publishContent()">Publish</button>
+    </div>
+</div>
+
+<script>
+    async function publishContent() {
+        const content = document.querySelector('.editor').innerHTML;
+        if (content.trim() === "") {
+            alert("Please write something before publishing.");
+            return;
+        }
+
+        const response = await fetch('save_content.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: content })
+        });
+
+        if (response.ok) {
+            alert("Your content has been published successfully!");
+            document.querySelector('.editor').innerHTML = "";
+        } else {
+            alert("Failed to publish content. Please try again.");
+        }
+    }
+</script>
+</body>
+</html>
