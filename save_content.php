@@ -10,9 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 exit;
 }
 
-$servername = "localhost";
-$username = "root";
-$password = "";
+$servername = "127.0.0.1";
+$username = "seed";
+$password = "plplplo()";
 $dbname = "telegraph";
 
 // Create connection
