@@ -36,8 +36,15 @@
             alert("Your content has been published successfully!");
             document.querySelector('.editor').innerHTML = "";
         } else {
-            const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
-            alert("Failed to publish content: " + (errorData.message || "Please try again."));
+            const text = await response.text();
+            let errorMessage = "Unknown error";
+            try {
+                const errorData = JSON.parse(text);
+                errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+                errorMessage = text.substring(0, 200) || "Empty response from server";
+            }
+            alert("Failed to publish content: " + errorMessage);
         }
     }
 </script>

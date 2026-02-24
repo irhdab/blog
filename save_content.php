@@ -21,9 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             http_response_code(500);
             echo json_encode(["message" => "Failed to save content."]);
         }
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
-        echo json_encode(["message" => "Database error: " . $e->getMessage()]);
+        echo json_encode(["message" => "Server error: " . $e->getMessage()]);
     }
 }
 ?>
