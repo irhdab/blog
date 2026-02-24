@@ -4,16 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Content</title>
+    <title>Copy and Paste - View</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="container">
         <div class="nav-links">
-            <a href="/" class="nav-link">Write New Post</a>
+            <a href="/" class="nav-link">Create New Paste</a>
         </div>
-        <h1><?php echo $isSingle ? "Post Detail" : "Saved Content"; ?></h1>
+        <h1><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
         <?php if ($result && $result->rowCount() > 0): ?>
             <?php while ($row = $result->fetch()): ?>
                 <div class="entry">

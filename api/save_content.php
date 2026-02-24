@@ -42,14 +42,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $interval = '';
                     break;
             }
+
             if ($interval) {
-                $expires_at = date('Y-m-d H:i:s', strtotime("+$interval"));
+                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, NOW() + CAST(? AS INTERVAL), ?)");
+                $success = $stmt->execute([$content, $interval, $exposure]);
+            } else {
+                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, NULL, ?)");
+                $success = $stmt->execute([$content, $exposure]);
             }
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, NULL, ?)");
+            $success = $stmt->execute([$content, $exposure]);
         }
 
-        $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, ?, ?)");
-
-        if ($stmt->execute([$content, $expires_at, $exposure])) {
+        if ($success) {
             http_response_code(200);
             echo json_encode(["message" => "Content saved successfully."]);
         } else {
