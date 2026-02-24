@@ -4,65 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegraphy</title>
-    <style>
-        html{
-            font-family: monospace;
-        }
-        body {
-            //margin: 0;
-            //padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: dimgrey;
-        }
-        .textss{
-            color: white;
-            font-size: 50px;
-        }
-        .editor-container {
-            width: 75%;
-            //max-width: 800px;
-            background: black;
-            //box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            //border-radius: 8px;
-            //padding: 20px;
-        }
-        .editor {
-            width: 100%;
-            min-height: 300px;
-            border: none;
-            outline: none;
-            font-size: 16px;
-            line-height: 1.0;
-            color: white;
-        }
-        .editor:empty::before {
-            content: "Write your story.";
-            color: #aaa;
-        }
-        .button-container {
-            text-align: right;
-            //margin-top: 20px;
-        }
-        .publish-button {
-            background-color: azure;
-            color: dimgrey;
-            border: none;
-            //padding: 5px 10px;
-            font-size: 16px;
-            //border-radius: 5px;
-            cursor: pointer;
-        }
-        .publish-button:hover {
-            color: black;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="editor-container">
-    <p class="textss">Blog</p>
+<div class="container">
+    <h1 class="title-text">Blog</h1>
     <hr>
     <div class="editor" contenteditable="true"></div>
     <div class="button-container">
