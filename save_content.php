@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 // save_content.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
@@ -11,6 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
+        if (!class_exists('PDO')) {
+            throw new Exception("PHP PDO extension is not installed.");
+        }
+        if (!in_array('pgsql', PDO::getAvailableDrivers())) {
+            throw new Exception("PHP PDO PostgreSQL driver (pdo_pgsql) is not installed.");
+        }
         require_once 'db.php';
         $stmt = $pdo->prepare("INSERT INTO writings (content) VALUES (?)");
 
