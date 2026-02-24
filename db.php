@@ -7,6 +7,10 @@ $user = getenv('PGUSER');
 $pass = getenv('PGPASSWORD');
 $port = getenv('PGPORT') ?: "5432";
 
+if (!$host || !$db || !$user || !$pass) {
+    throw new \PDOException("Missing database environment variables. Please check your Vercel settings or local environment.");
+}
+
 $charset = 'utf8mb4';
 
 $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";

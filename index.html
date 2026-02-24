@@ -36,7 +36,8 @@
             alert("Your content has been published successfully!");
             document.querySelector('.editor').innerHTML = "";
         } else {
-            alert("Failed to publish content. Please try again.");
+            const errorData = await response.json().catch(() => ({ message: "Unknown error" }));
+            alert("Failed to publish content: " + (errorData.message || "Please try again."));
         }
     }
 </script>
