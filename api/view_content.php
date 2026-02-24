@@ -39,10 +39,33 @@ try {
         }
     } else {
         // List view: Must not be expired AND must be public
-        $sql = "SELECT id, content, created_at, password_hash FROM writings WHERE (expires_at IS NULL OR expires_at > NOW()) AND exposure = 'public' ORDER BY created_at DESC";
-        $stmt = $pdo->query($sql);
+        $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+        $limit = 15;
+        $offset = ($page - 1) * $limit;
+
+        // Fetch limit + 1 to check if there is a next page
+        $sql = "SELECT id, content, created_at, password_hash 
+                FROM writings 
+                WHERE (expires_at IS NULL OR expires_at > NOW()) 
+                AND exposure = 'public' 
+                ORDER BY created_at DESC 
+                LIMIT :limit OFFSET :offset";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
         $result = [];
+        $hasNext = false;
+        $count = 0;
+
         while ($r = $stmt->fetch()) {
+            $count++;
+            if ($count > $limit) {
+                $hasNext = true;
+                break;
+            }
             // Hide content in list if password protected
             if (!empty($r['password_hash'])) {
                 $r['content'] = "[Password Protected]";
@@ -50,6 +73,7 @@ try {
             $result[] = $r;
         }
         $isSingle = false;
+        $currentPage = $page;
     }
 } catch (PDOException $e) {
     die("Database error: " . $e->getMessage());

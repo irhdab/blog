@@ -60,7 +60,6 @@ hr {
     min-height: 400px;
     background: #1e1e1e;
     border: 1px solid #333;
-    border-radius: 8px;
     padding: 20px;
     color: #e0e0e0;
     font-family: 'Exo 2', sans-serif;
@@ -96,7 +95,6 @@ hr {
     font-size: 14px;
     cursor: pointer;
     font-family: inherit;
-    border-radius: 4px 4px 0 0;
 }
 
 .tab-btn.active {
@@ -107,7 +105,6 @@ hr {
 
 .tab-btn:hover:not(.active) {
     color: var(--text-primary);
-    border-color: var(--text-secondary);
 }
 
 .char-count {
@@ -120,7 +117,6 @@ hr {
     min-height: 400px;
     background: #1e1e1e;
     border: 1px solid #333;
-    border-radius: 8px;
     padding: 20px;
     color: #e0e0e0;
     margin-bottom: 25px;
@@ -134,7 +130,6 @@ hr {
 .style-input {
     background: #1e1e1e;
     border: 1px solid #333;
-    border-radius: 6px;
     color: #e0e0e0;
     padding: 8px 12px;
     font-family: 'Exo 2', sans-serif;
@@ -156,14 +151,12 @@ hr {
 .content pre {
     background: #2d2d2d;
     padding: 15px;
-    border-radius: 6px;
     overflow-x: auto;
 }
 
 .content code {
     background: #2d2d2d;
     padding: 2px 4px;
-    border-radius: 4px;
     font-family: 'Consolas', 'Monaco', monospace;
 }
 
@@ -192,21 +185,17 @@ hr {
 }
 
 .publish-button {
-  background-color: var(--accent);
-  color: #000;
-  border: 1px solid var(--accent);
+  background-color: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
   padding: 5px 15px;
   font-family: inherit;
   font-size: 14px;
   cursor: pointer;
 }
 
-.publish-button:hover {
-  background-color: var(--accent-hover);
-}
-
 .publish-button:active {
-  transform: translateY(0);
+  background-color: var(--card-bg);
 }
 
 .entry {
@@ -239,10 +228,6 @@ hr {
   font-family: inherit;
   font-size: 13px;
   cursor: pointer;
-}
-
-.copy-btn:hover {
-  background: var(--card-bg);
 }
 
 @media (max-width: 600px) {
@@ -289,17 +274,44 @@ hr {
     border-color: var(--text-secondary);
 }
 
+.site-footer {
+    margin-top: 50px;
+    padding-bottom: 30px;
+}
+
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+    padding: 20px 0;
+}
+
+.nav-btn {
+    text-decoration: none;
+    font-size: 0.9rem;
+    min-width: 100px;
+}
+
+.nav-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #333;
+}
+
+.page-info {
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
 .result-container {
     margin-top: 30px;
     padding: 20px;
     background: var(--card-bg);
     border: 1px solid var(--accent);
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .result-container p {
@@ -346,8 +358,5 @@ hr {
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3a3a;
-}
+

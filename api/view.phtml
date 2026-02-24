@@ -60,6 +60,24 @@
                     </script>
                 <?php endif; ?>
             <?php endforeach; ?>
+
+            <?php if (!$isSingle): ?>
+                <div class="pagination">
+                    <?php if ($currentPage > 1): ?>
+                        <a href="/view?page=<?php echo $currentPage - 1; ?>" class="copy-btn nav-btn">Previous</a>
+                    <?php else: ?>
+                        <button class="copy-btn nav-btn" disabled>Previous</button>
+                    <?php endif; ?>
+
+                    <span class="page-info">Page <?php echo $currentPage; ?></span>
+
+                    <?php if ($hasNext): ?>
+                        <a href="/view?page=<?php echo $currentPage + 1; ?>" class="copy-btn nav-btn">Next</a>
+                    <?php else: ?>
+                        <button class="copy-btn nav-btn" disabled>Next</button>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
         <?php else: ?>
             <p>No content available.</p>
         <?php endif; ?>
