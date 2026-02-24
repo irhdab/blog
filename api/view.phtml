@@ -13,18 +13,33 @@
         <div class="nav-links">
             <a href="/" class="nav-link">Write New Post</a>
         </div>
-        <h1>Saved Content</h1>
+        <h1><?php echo $isSingle ? "Post Detail" : "Saved Content"; ?></h1>
         <?php if ($result && $result->rowCount() > 0): ?>
             <?php while ($row = $result->fetch()): ?>
                 <div class="entry">
                     <div class="content"><?php echo $row['content']; ?></div>
                     <div class="timestamp">Saved on: <?php echo $row['created_at']; ?></div>
+                    <div class="actions">
+                        <?php if ($isSingle): ?>
+                            <button class="copy-btn" onclick="copyCurrentUrl()">Copy Link</button>
+                        <?php else: ?>
+                            <a href="/view?id=<?php echo $row['id']; ?>" class="share-link">Share Link</a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php endwhile; ?>
         <?php else: ?>
             <p>No content available.</p>
         <?php endif; ?>
     </div>
+    <script>
+        function copyCurrentUrl() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+    </script>
 </body>
 
 </html>

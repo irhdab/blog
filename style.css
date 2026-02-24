@@ -123,6 +123,46 @@ hr {
   margin-bottom: 40px;
   padding-bottom: 40px;
   border-bottom: 1px solid var(--border-color);
+    padding-left: 20px;
+    border-left: 1px solid var(--border-color);
+}
+
+.actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.share-link {
+    color: var(--accent); /* Changed from var(--accent-color) to var(--accent) */
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.share-link:hover {
+    text-decoration: underline;
+}
+
+.copy-btn {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-btn:hover {
+    background: var(--border-color);
+}
+
+@media (max-width: 600px) {
+  .entry { /* Added .entry selector */
+    border-bottom: none;
+  }
 }
 
 .entry:last-child {
