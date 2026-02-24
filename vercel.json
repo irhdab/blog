@@ -2,9 +2,10 @@
   "functions": {
     "api/*.php": {
       "runtime": "vercel-php@0.7.0"
-    },
-    "*.php": {
-      "runtime": "vercel-php@0.7.0"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/save", "destination": "/api/save_content.php" },
+    { "source": "/view", "destination": "/api/view_content.php" }
+  ]
 }
