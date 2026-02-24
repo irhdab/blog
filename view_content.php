@@ -1,18 +1,15 @@
 <?php
-$servername = "localhost"; // Replace with your database server
-$username = "seed";        // Replace with your database username
-$password = "plplplo()";            // Replace with your database password
-$dbname = "telegraph";     // Replace with your database name
+require_once 'db.php';
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    // Fetch all writings from the database
+    $sql = "SELECT id, content, created_at FROM writings ORDER BY created_at DESC";
+    $result = $pdo->query($sql);
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
 }
 
-// Fetch all writings from the database
-$sql = "SELECT id, content, created_at FROM writings ORDER BY created_at DESC";
-$result = $conn->query($sql);
+
+
+include 'view.phtml';
 ?>

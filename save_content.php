@@ -7,36 +7,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($content)) {
         http_response_code(400);
         echo json_encode(["message" => "Content is required."]);
-exit;
-}
+        exit;
+    }
 
-$servername = "127.0.0.1";
-$username = "seed";
-$password = "plplplo()";
-$dbname = "telegraph";
+    require_once 'db.php';
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO writings (content) VALUES (?)");
 
-// Check connection
-if ($conn->connect_error) {
-http_response_code(500);
-echo json_encode(["message" => "Database connection failed."]);
-exit;
-}
-
-$stmt = $conn->prepare("INSERT INTO writings (content) VALUES (?)");
-$stmt->bind_param("s", $content);
-
-if ($stmt->execute()) {
-http_response_code(200);
-echo json_encode(["message" => "Content saved successfully."]);
-} else {
-http_response_code(500);
-echo json_encode(["message" => "Failed to save content."]);
-}
-
-$stmt->close();
-$conn->close();
+        if ($stmt->execute([$content])) {
+            http_response_code(200);
+            echo json_encode(["message" => "Content saved successfully."]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["message" => "Failed to save content."]);
+        }
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(["message" => "Database error: " . $e->getMessage()]);
+    }
 }
 ?>
