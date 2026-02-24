@@ -10,9 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    require_once 'db.php';
-
     try {
+        require_once 'db.php';
         $stmt = $pdo->prepare("INSERT INTO writings (content) VALUES (?)");
 
         if ($stmt->execute([$content])) {
