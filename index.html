@@ -8,6 +8,9 @@
 </head>
 <body>
 <div class="container">
+    <div class="nav-links">
+        <a href="/view" class="nav-link">View Posts</a>
+    </div>
     <h1 class="title-text">Blog</h1>
     <hr>
     <div class="editor" contenteditable="true"></div>
@@ -33,7 +36,7 @@
         });
 
         if (response.ok) {
-            alert("Your content has been published successfully!");
+            alert("Your content has been published successfully! Click 'View Posts' at the top to see it.");
             document.querySelector('.editor').innerHTML = "";
         } else {
             const text = await response.text();

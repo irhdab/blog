@@ -10,6 +10,9 @@
 
 <body>
     <div class="container">
+        <div class="nav-links">
+            <a href="/" class="nav-link">Write New Post</a>
+        </div>
         <h1>Saved Content</h1>
         <?php if ($result && $result->rowCount() > 0): ?>
             <?php while ($row = $result->fetch()): ?>
