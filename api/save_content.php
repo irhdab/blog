@@ -21,6 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $expiration = $data['expiration'] ?? 'never';
         $exposure = $data['exposure'] ?? 'public';
+        $password = $data['password'] ?? '';
+        $password_hash = !empty($password) ? password_hash($password, PASSWORD_BCRYPT) : null;
         $expires_at = null;
 
         if ($expiration !== 'never') {
@@ -44,15 +46,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($interval) {
-                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, NOW() + CAST(? AS INTERVAL), ?)");
-                $success = $stmt->execute([$content, $interval, $exposure]);
+                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash) VALUES (?, NOW() + CAST(? AS INTERVAL), ?, ?)");
+                $success = $stmt->execute([$content, $interval, $exposure, $password_hash]);
             } else {
-                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, NULL, ?)");
-                $success = $stmt->execute([$content, $exposure]);
+                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash) VALUES (?, NULL, ?, ?)");
+                $success = $stmt->execute([$content, $exposure, $password_hash]);
             }
         } else {
-            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, NULL, ?)");
-            $success = $stmt->execute([$content, $exposure]);
+            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash) VALUES (?, NULL, ?, ?)");
+            $success = $stmt->execute([$content, $exposure, $password_hash]);
         }
 
         if ($success) {

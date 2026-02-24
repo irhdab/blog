@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -17,10 +18,22 @@
             <a href="/" class="nav-link">Create New Paste</a>
         </div>
         <h1><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
-        <?php if ($result && $result->rowCount() > 0): ?>
-            <?php while ($row = $result->fetch()): ?>
+        
+        <?php if ($isSingle && isset($hasPassword) && $hasPassword && !$passwordCorrect): ?>
+            <div class="entry">
+                <p>This paste is password protected.</p>
+                <?php if (isset($passwordError)): ?>
+                    <p style="color: var(--error-color);"><?php echo $passwordError; ?></p>
+                <?php endif; ?>
+                <form method="POST">
+                    <input type="password" name="password" class="style-input" placeholder="Enter password" required>
+                    <button type="submit" class="copy-btn">Unlock</button>
+                </form>
+            </div>
+        <?php elseif (!empty($result)): ?>
+            <?php foreach ($result as $row): ?>
                 <div class="entry">
-                    <div class="content"><?php echo $row['content']; ?></div>
+                    <div class="content" id="content-<?php echo $row['id']; ?>"><?php echo htmlspecialchars($row['content']); ?></div>
                     <div class="timestamp">Saved on: <?php echo $row['created_at']; ?></div>
                     <div class="actions">
                         <?php if ($isSingle): ?>
@@ -30,7 +43,12 @@
                         <?php endif; ?>
                     </div>
                 </div>
-            <?php endwhile; ?>
+                <?php if ($row['content'] !== null && $row['content'] !== "[Password Protected]"): ?>
+                    <script>
+                        document.getElementById('content-<?php echo $row['id']; ?>').innerHTML = marked.parse(<?php echo json_encode($row['content']); ?>);
+                    </script>
+                <?php endif; ?>
+            <?php endforeach; ?>
         <?php else: ?>
             <p>No content available.</p>
         <?php endif; ?>

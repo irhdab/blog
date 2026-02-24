@@ -35,9 +35,13 @@
                 <option value="unlisted">Unlisted</option>
             </select>
         </div>
+        <div class="option-group">
+            <label for="password">Password (Optional):</label>
+            <input type="password" id="password" class="style-input" placeholder="Set password">
+        </div>
     </div>
 
-    <div class="editor" contenteditable="true"></div>
+    <textarea class="editor" id="editor" placeholder="Write your markdown here..."></textarea>
     <div class="button-container">
         <button class="publish-button" onclick="publishContent()">Publish</button>
     </div>
@@ -53,7 +57,7 @@
 
 <script>
     async function publishContent() {
-        const content = document.querySelector('.editor').innerHTML;
+        const content = document.getElementById('editor').value;
         if (content.trim() === "") {
             alert("Please write something before publishing.");
             return;
@@ -61,6 +65,7 @@
 
         const expiration = document.getElementById('expiration').value;
         const exposure = document.getElementById('exposure').value;
+        const password = document.getElementById('password').value;
 
         const response = await fetch('/save', {
             method: 'POST',
@@ -70,7 +75,8 @@
             body: JSON.stringify({ 
                 content: content,
                 expiration: expiration,
-                exposure: exposure
+                exposure: exposure,
+                password: password
             })
         });
 
@@ -84,7 +90,8 @@
             pasteLinkSpan.textContent = shareUrl;
             resultContainer.style.display = 'block';
             
-            document.querySelector('.editor').innerHTML = "";
+            document.getElementById('editor').value = "";
+            document.getElementById('password').value = "";
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         } else {
             const text = await response.text();
