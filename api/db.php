@@ -21,4 +21,26 @@ $options = [
 ];
 
 $pdo = new PDO($dsn, $user, $pass, $options);
+
+// Auto-migration: Ensure columns exist
+try {
+    // Check if expires_at column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='expires_at'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN expires_at TIMESTAMP NULL");
+        $pdo->exec("CREATE INDEX idx_writings_expires_at ON writings(expires_at)");
+    }
+
+    // Check if exposure column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='exposure'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN exposure VARCHAR(20) DEFAULT 'public'");
+        $pdo->exec("CREATE INDEX idx_writings_exposure ON writings(exposure)");
+    }
+} catch (Exception $e) {
+    // Silently handle migration errors in production or log them
+    error_log("Migration error: " . $e->getMessage());
+}
 ?>

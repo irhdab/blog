@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegraphy</title>
+    <title>Copy and Paste</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -11,8 +11,29 @@
     <div class="nav-links">
         <a href="/view" class="nav-link">View Posts</a>
     </div>
-    <h1 class="title-text">Blog</h1>
+    <h1 class="title-text">Copy and Paste</h1>
     <hr>
+    
+    <div class="options-container">
+        <div class="option-group">
+            <label for="expiration">Paste Expiration:</label>
+            <select id="expiration" class="style-select">
+                <option value="never">Never</option>
+                <option value="10m">10 Minutes</option>
+                <option value="1h">1 Hour</option>
+                <option value="1d">1 Day</option>
+                <option value="1w">1 Week</option>
+            </select>
+        </div>
+        <div class="option-group">
+            <label for="exposure">Paste Exposure:</label>
+            <select id="exposure" class="style-select">
+                <option value="public">Public</option>
+                <option value="unlisted">Unlisted</option>
+            </select>
+        </div>
+    </div>
+
     <div class="editor" contenteditable="true"></div>
     <div class="button-container">
         <button class="publish-button" onclick="publishContent()">Publish</button>
@@ -27,12 +48,19 @@
             return;
         }
 
+        const expiration = document.getElementById('expiration').value;
+        const exposure = document.getElementById('exposure').value;
+
         const response = await fetch('/save', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ content: content })
+            body: JSON.stringify({ 
+                content: content,
+                expiration: expiration,
+                exposure: exposure
+            })
         });
 
         if (response.ok) {

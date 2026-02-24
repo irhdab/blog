@@ -18,9 +18,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("PHP PDO PostgreSQL driver (pdo_pgsql) is not installed.");
         }
         require_once 'db.php';
-        $stmt = $pdo->prepare("INSERT INTO writings (content) VALUES (?)");
 
-        if ($stmt->execute([$content])) {
+        $expiration = $data['expiration'] ?? 'never';
+        $exposure = $data['exposure'] ?? 'public';
+        $expires_at = null;
+
+        if ($expiration !== 'never') {
+            $interval = '';
+            switch ($expiration) {
+                case '10m':
+                    $interval = '10 minutes';
+                    break;
+                case '1h':
+                    $interval = '1 hour';
+                    break;
+                case '1d':
+                    $interval = '1 day';
+                    break;
+                case '1w':
+                    $interval = '1 week';
+                    break;
+                default:
+                    $interval = '';
+                    break;
+            }
+            if ($interval) {
+                $expires_at = date('Y-m-d H:i:s', strtotime("+$interval"));
+            }
+        }
+
+        $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure) VALUES (?, ?, ?)");
+
+        if ($stmt->execute([$content, $expires_at, $exposure])) {
             http_response_code(200);
             echo json_encode(["message" => "Content saved successfully."]);
         } else {
