@@ -53,6 +53,27 @@ try {
     if (!$stmt->fetch()) {
         $pdo->exec("ALTER TABLE writings ADD COLUMN burn_on_read BOOLEAN DEFAULT FALSE");
     }
+
+    // Check if view_count column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='view_count'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN view_count INTEGER DEFAULT 0");
+    }
+
+    // Check if view_limit column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='view_limit'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN view_limit INTEGER NULL");
+    }
+
+    // Check if is_encrypted column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='is_encrypted'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN is_encrypted BOOLEAN DEFAULT FALSE");
+    }
 } catch (Exception $e) {
     // Silently handle migration errors in production or log them
     error_log("Migration error: " . $e->getMessage());

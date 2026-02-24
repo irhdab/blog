@@ -7,12 +7,17 @@
     <title>Copy and Paste - View</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
         /* Minimalist line numbers style */
         .hljs-ln-numbers {
@@ -28,8 +33,39 @@
             vertical-align: top;
             padding-right: 15px !important;
         }
-        .hljs-ln-code { padding-left: 15px !important; }
-        .burn-notice { background: #3c1414; border: 1px solid #f00; padding: 10px; margin-bottom: 20px; font-size: 14px; color: #ff9999; }
+
+        .hljs-ln-code {
+            padding-left: 15px !important;
+        }
+
+        .burn-notice {
+            background: #3c1414;
+            border: 1px solid #f00;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #ff9999;
+        }
+
+        .view-stats {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .katex {
+            font-size: 1.1em;
+        }
+
+        .embed-container {
+            margin: 15px 0;
+            max-width: 100%;
+        }
+
+        iframe {
+            border-radius: 8px;
+            border: none;
+        }
     </style>
 </head>
 
@@ -39,7 +75,7 @@
             <a href="/" class="nav-link">Create New Paste</a>
         </div>
         <h1><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
-        
+
         <?php if (isset($burnMessage)): ?>
             <div class="burn-notice"><?php echo $burnMessage; ?></div>
         <?php endif; ?>
@@ -58,36 +94,57 @@
         <?php elseif (!empty($result)): ?>
             <?php foreach ($result as $row): ?>
                 <div class="entry">
-                    <div class="content" id="content-<?php echo $row['id']; ?>"><?php echo htmlspecialchars($row['content']); ?></div>
+                    <div class="content" id="content-<?php echo $row['id']; ?>">
+                        <?php if (!empty($row['is_encrypted'])): ?>
+                            <div id="decrypt-prompt-<?php echo $row['id']; ?>">
+                                <p style="font-size: 14px; color: #aaa;">This content is locally encrypted (E2EE).</p>
+                                <form
+                                    onsubmit="handleDecrypt(event, '<?php echo $row['id']; ?>', '<?php echo htmlspecialchars($row['content']); ?>')">
+                                    <input type="password" id="decrypt-pw-<?php echo $row['id']; ?>" class="style-input"
+                                        placeholder="Password to decrypt" required>
+                                    <button type="submit" class="copy-btn">Decrypt Content</button>
+                                </form>
+                            </div>
+                        <?php else: ?>
+                            <?php echo htmlspecialchars($row['content']); ?>
+                        <?php endif; ?>
+                    </div>
+                    <div class="view-stats">
+                        Views: <?php echo $row['view_count']; ?>
+                        <?php if (isset($row['view_limit']) && $row['view_limit'] > 0): ?>
+                            / Limit: <?php echo $row['view_limit']; ?>
+                        <?php endif; ?>
+                    </div>
                     <div class="timestamp">Saved on: <?php echo $row['created_at']; ?></div>
                     <div class="actions">
                         <?php if ($isSingle): ?>
                             <button class="copy-btn" onclick="copyCurrentUrl()">Copy Link</button>
-                            <button class="copy-btn" onclick="copyContent('content-<?php echo $row['id']; ?>')">Copy Content</button>
+                            <button class="copy-btn" onclick="copyContent('content-<?php echo $row['id']; ?>')">Copy
+                                Content</button>
                             <?php if ($hasPassword): ?>
                                 <hr style="margin: 10px 0; border-top: 1px solid #222;">
                                 <form method="POST" style="display: inline-block;">
                                     <input type="hidden" name="action" value="delete">
-                                    <input type="password" name="password" class="style-input" style="padding: 2px 5px; font-size: 11px;" placeholder="Password to delete" required>
-                                    <button type="submit" class="copy-btn" style="color: #ff5555; border-color: #331111;">Delete Post</button>
+                                    <input type="password" name="password" class="style-input"
+                                        style="padding: 2px 5px; font-size: 11px;" placeholder="Password to delete" required>
+                                    <button type="submit" class="copy-btn" style="color: #ff5555; border-color: #331111;">Delete
+                                        Post</button>
                                 </form>
                             <?php endif; ?>
                         <?php else: ?>
                             <a href="/view?id=<?php echo $row['id']; ?>" class="share-link">Share Link</a>
-                            <button class="copy-btn" onclick="copyText(<?php echo json_encode($row['content']); ?>)">Copy Raw</button>
+                            <button class="copy-btn" onclick="copyText(<?php echo json_encode($row['content']); ?>)">Copy
+                                Raw</button>
                         <?php endif; ?>
                     </div>
                 </div>
                 <?php if ($row['content'] !== null && $row['content'] !== "[Password Protected]" && $row['content'] !== "[Burn on Read]"): ?>
                     <script>
                         (function() {
-                            const contentDiv = document.getElementById('content-<?php echo $row['id']; ?>');
-                            const rawContent = <?php echo json_encode($row['content']); ?>;
-                            contentDiv.innerHTML = marked.parse(rawContent);
-                            contentDiv.querySelectorAll('pre code').forEach((block) => {
-                                hljs.highlightElement(block);
-                                hljs.lineNumbersBlock(block);
-                            });
+                            const isEncrypted = <?php echo !empty($row['is_encrypted']) ? 'true' : 'false'; ?>;
+                            if (!isEncrypted) {
+                                renderContent('<?php echo $row['id']; ?>', <?php echo json_encode($row['content']); ?>);
+                            }
                         })();
                     </script>
                 <?php endif; ?>
@@ -117,11 +174,86 @@
     <footer class="site-footer">
         <div class="container">
             <hr>
-            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/privacy.html" class="nav-link">개인정보 처리방침</a></p>
+            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/privacy.html" class="nav-link">개인정보 처리방침</a>
+            </p>
         </div>
     </footer>
     <script>
-        function copyCurrentUrl() {
+        // E2EE Decryption
+    async function deriveKey(password, salt) {
+        const encoder = new TextEncoder();
+        const baseKey = await crypto.subtle.importKey(
+            "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
+        );
+        return crypto.subtle.deriveKey(
+            { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+            baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+        );
+    }
+
+    async function decryptData(base64Data, password) {
+        const combined = new Uint8Array(atob(base64Data).split("").map(c => c.charCodeAt(0)));
+        const salt = combined.slice(0, 16);
+        const iv = combined.slice(16, 28);
+        const encrypted = combined.slice(28);
+        
+        const key = await deriveKey(password, salt);
+        const decrypted = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv }, key, encrypted
+        );
+        return new TextDecoder().decode(decrypted);
+    }
+
+    async function handleDecrypt(event, id, encryptedContent) {
+        event.preventDefault();
+        const password = document.getElementById(`decrypt-pw-${id}`).value;
+        try {
+            const decrypted = await decryptData(encryptedContent, password);
+            renderContent(id, decrypted);
+        } catch (e) {
+            alert("Decryption failed. Incorrect password?");
+        }
+    }
+
+    function autoEmbed(html) {
+        // Youtube
+        html = html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g, 
+            '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+        // Twitter (X) - Simple link to card if possible, but cards usually need JS. We'll at least make it look distinct or use a simple embed if available.
+        // For simplicity, we'll just handle Youtube for now as Twitter embeds are heavy JS.
+        return html;
+    }
+
+    function renderContent(id, content) {
+        const contentDiv = document.getElementById(`content-${id}`);
+        let html = marked.parse(content);
+        html = autoEmbed(html);
+        contentDiv.innerHTML = html;
+
+        contentDiv.querySelectorAll('pre code').forEach((block) => {
+            if (block.className.indexOf('language-') === -1) {
+                // Auto-detect language
+                const result = hljs.highlightAuto(block.innerText);
+                block.innerHTML = result.value;
+            } else {
+                hljs.highlightElement(block);
+            }
+            hljs.lineNumbersBlock(block);
+        });
+
+        // KaTeX auto-render
+        renderMathInElement(contentDiv, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\\(', right: '\\)', display: false},
+                {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError : false
+        });
+    }
+
+    function copyCurrentUrl() {
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
                 alert("Link copied to clipboard!");

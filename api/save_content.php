@@ -22,15 +22,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $expiration = $data['expiration'] ?? 'never';
         $exposure = $data['exposure'] ?? 'public';
         $password = $data['password'] ?? '';
+        $view_limit = isset($data['view_limit']) ? (int) $data['view_limit'] : null;
+        $is_encrypted = !empty($data['is_encrypted']);
+
+        if ($view_limit <= 0)
+            $view_limit = null;
+
         $password_hash = !empty($password) ? password_hash($password, PASSWORD_BCRYPT) : null;
         $expires_at = null;
 
         if ($expiration !== 'never') {
             $interval = '';
             if ($expiration === 'burn') {
-                $burn_on_read = true;
-                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NULL, ?, ?, TRUE)");
-                $success = $stmt->execute([$content, $exposure, $password_hash]);
+                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read, view_limit, is_encrypted) VALUES (?, NULL, ?, ?, TRUE, ?, ?)");
+                $success = $stmt->execute([$content, $exposure, $password_hash, $view_limit, $is_encrypted ? 1 : 0]);
             } else {
                 switch ($expiration) {
                     case '10m':
@@ -48,16 +53,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 if ($interval) {
-                    $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NOW() + CAST(? AS INTERVAL), ?, ?, FALSE)");
-                    $success = $stmt->execute([$content, $interval, $exposure, $password_hash]);
+                    $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read, view_limit, is_encrypted) VALUES (?, NOW() + CAST(? AS INTERVAL), ?, ?, FALSE, ?, ?)");
+                    $success = $stmt->execute([$content, $interval, $exposure, $password_hash, $view_limit, $is_encrypted ? 1 : 0]);
                 } else {
-                    $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NULL, ?, ?, FALSE)");
-                    $success = $stmt->execute([$content, $exposure, $password_hash]);
+                    $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read, view_limit, is_encrypted) VALUES (?, NULL, ?, ?, FALSE, ?, ?)");
+                    $success = $stmt->execute([$content, $exposure, $password_hash, $view_limit, $is_encrypted ? 1 : 0]);
                 }
             }
         } else {
-            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NULL, ?, ?, FALSE)");
-            $success = $stmt->execute([$content, $exposure, $password_hash]);
+            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read, view_limit, is_encrypted) VALUES (?, NULL, ?, ?, FALSE, ?, ?)");
+            $success = $stmt->execute([$content, $exposure, $password_hash, $view_limit, $is_encrypted ? 1 : 0]);
         }
 
         if ($success) {

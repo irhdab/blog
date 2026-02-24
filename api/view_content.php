@@ -7,7 +7,7 @@ try {
 
     if ($id) {
         // Individual post: Must not be expired
-        $sql = "SELECT id, content, created_at, password_hash, burn_on_read FROM writings WHERE id = ? AND (expires_at IS NULL OR expires_at > NOW())";
+        $sql = "SELECT id, content, created_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted FROM writings WHERE id = ? AND (expires_at IS NULL OR expires_at > NOW())";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id]);
         $row = $stmt->fetch();
@@ -50,23 +50,33 @@ try {
                 $row['content'] = null;
             }
 
+            // Increment view count if accessible
+            if ($passwordCorrect) {
+                $stmt = $pdo->prepare("UPDATE writings SET view_count = view_count + 1 WHERE id = ?");
+                $stmt->execute([$id]);
+                $row['view_count']++; // Update local row for current view
+
+                // Check view limit or burn_on_read
+                $shouldDelete = false;
+                if (!empty($row['burn_on_read'])) {
+                    $shouldDelete = true;
+                    $burnMessage = "This post has been burned after reading.";
+                } else if ($row['view_limit'] !== null && $row['view_count'] >= $row['view_limit']) {
+                    $shouldDelete = true;
+                    $burnMessage = "This post has reached its view limit and has been deleted.";
+                }
+
+                if ($shouldDelete) {
+                    $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
+                    $stmt->execute([$id]);
+                }
+            }
+
             // Raw API Support
             if ($raw && $passwordCorrect) {
                 header('Content-Type: text/plain; charset=utf-8');
                 echo $row['content'];
-                // Self-destruct if flagged
-                if (!empty($row['burn_on_read'])) {
-                    $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
-                    $stmt->execute([$id]);
-                }
                 exit;
-            }
-
-            // Self-destruct if flagged (non-raw view)
-            if ($passwordCorrect && !empty($row['burn_on_read'])) {
-                $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
-                $stmt->execute([$id]);
-                $burnMessage = "This post has been burned after reading.";
             }
 
             $result = [$row]; // Emulate iterable for simple logic in phtml
@@ -80,7 +90,7 @@ try {
         $offset = ($page - 1) * $limit;
 
         // Fetch limit + 1 to check if there is a next page
-        $sql = "SELECT id, content, created_at, password_hash, burn_on_read 
+        $sql = "SELECT id, content, created_at, password_hash, burn_on_read, view_count, is_encrypted 
                 FROM writings 
                 WHERE (expires_at IS NULL OR expires_at > NOW()) 
                 AND exposure = 'public' 

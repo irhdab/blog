@@ -40,17 +40,29 @@
             </select>
         </div>
         <div class="option-group">
-            <label for="password">Password (Optional):</label>
-            <input type="password" id="password" class="style-input" placeholder="Set password">
+            <label for="view_limit">View Limit (Optional)</label>
+            <input type="number" id="view_limit" class="style-input" placeholder="e.g. 5" min="1" style="width: 80px;">
         </div>
+        <div class="option-group">
+            <label for="password">Password (optional)</label>
+            <input type="password" id="password" class="style-input" placeholder="Enter password">
+        </div>
+    </div>
+    <div class="options-container" style="margin-top: -5px; margin-bottom: 20px;">
+        <label style="font-size: 13px; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="is_encrypted"> End-to-End Encryption (E2EE) - <span style="font-size: 11px; opacity: 0.7;">Password will be required to decrypt. Content is never sent raw to server.</span>
+        </label>
     </div>
 
     <div class="editor-header">
         <div class="tab-container">
-            <button class="tab-btn active" onclick="showEditor()">Editor</button>
-            <button class="tab-btn" onclick="showPreview()">Preview</button>
+            <button id="editor-tab" class="tab-btn active" onclick="showEditor()">Editor</button>
+            <button id="preview-tab" class="tab-btn" onclick="showPreview()">Preview</button>
         </div>
-        <div class="char-count">Characters: <span id="char-count">0</span></div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <span id="reading-time" class="char-count" style="margin-right: 10px;">Est. Reading: 0 min</span>
+            <span id="char-count" class="char-count">0</span>
+        </div>
     </div>
     <div id="editor-wrapper">
         <textarea class="editor" id="editor" placeholder="Write your markdown here..." oninput="onEditorInput()"></textarea>
@@ -77,7 +89,7 @@
         const draft = localStorage.getItem('paste_draft');
         if (draft) {
             document.getElementById('editor').value = draft;
-            document.getElementById('char-count').textContent = draft.length;
+            updateStats(draft);
             console.log("Draft restored from local storage.");
         }
 
@@ -90,9 +102,16 @@
         });
     });
 
+    function updateStats(content) {
+        document.getElementById('char-count').textContent = content.length;
+        const words = content.trim().split(/\s+/).length;
+        const readingTime = Math.ceil(words / 200);
+        document.getElementById('reading-time').textContent = `Est. Reading: ${readingTime} min`;
+    }
+
     function onEditorInput() {
         const content = document.getElementById('editor').value;
-        document.getElementById('char-count').textContent = content.length;
+        updateStats(content);
         localStorage.setItem('paste_draft', content); // Save draft
         if (!document.getElementById('preview-pane').classList.contains('hidden')) {
             updatePreview();
@@ -121,8 +140,40 @@
         updatePreview();
     }
 
+    // E2EE Encryption Helpers
+    async function deriveKey(password, salt) {
+        const encoder = new TextEncoder();
+        const baseKey = await crypto.subtle.importKey(
+            "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
+        );
+        return crypto.subtle.deriveKey(
+            { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+            baseKey, { name: "AES-GCM", length: 256 }, false, ["encrypt"]
+        );
+    }
+
+    async function encryptData(text, password) {
+        const encoder = new TextEncoder();
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await deriveKey(password, salt);
+        const encrypted = await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv }, key, encoder.encode(text)
+        );
+        
+        // Combine Salt + IV + EncryptedData for easy storage
+        const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+        combined.set(salt, 0);
+        combined.set(iv, salt.length);
+        combined.set(new Uint8Array(encrypted), salt.length + iv.length);
+        
+        // Return as base64
+        return btoa(String.fromCharCode.apply(null, combined));
+    }
+
     async function publishContent() {
-        const content = document.getElementById('editor').value;
+        const contentArea = document.getElementById('editor');
+        let content = contentArea.value;
         if (content.trim() === "") {
             alert("Please write something before publishing.");
             return;
@@ -131,6 +182,23 @@
         const expiration = document.getElementById('expiration').value;
         const exposure = document.getElementById('exposure').value;
         const password = document.getElementById('password').value;
+        const viewLimit = document.getElementById('view_limit').value;
+        const isEncrypted = document.getElementById('is_encrypted').checked;
+
+        if (isEncrypted && !password) {
+            alert("Encryption requires a password.");
+            return;
+        }
+
+        if (isEncrypted) {
+            try {
+                content = await encryptData(content, password);
+            } catch (e) {
+                console.error(e);
+                alert("Encryption failed.");
+                return;
+            }
+        }
 
         const response = await fetch('/save', {
             method: 'POST',
@@ -141,7 +209,9 @@
                 content: content,
                 expiration: expiration,
                 exposure: exposure,
-                password: password
+                password: isEncrypted ? "" : password, // If E2EE, don't store plain password
+                view_limit: viewLimit,
+                is_encrypted: isEncrypted
             })
         });
 
@@ -155,10 +225,12 @@
             pasteLinkSpan.textContent = shareUrl;
             resultContainer.style.display = 'block';
             
-            document.getElementById('editor').value = "";
+            contentArea.value = "";
             localStorage.removeItem('paste_draft'); // Clear draft on success
             document.getElementById('password').value = "";
-            document.getElementById('char-count').textContent = "0";
+            document.getElementById('view_limit').value = "";
+            document.getElementById('is_encrypted').checked = false;
+            updateStats("");
             showEditor();
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         } else {
