@@ -56,8 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($success) {
+            $newId = $pdo->lastInsertId();
             http_response_code(200);
-            echo json_encode(["message" => "Content saved successfully."]);
+            echo json_encode(["message" => "Content saved successfully.", "id" => $newId]);
         } else {
             http_response_code(500);
             echo json_encode(["message" => "Failed to save content."]);

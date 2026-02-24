@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Copy and Paste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -38,6 +41,14 @@
     <div class="button-container">
         <button class="publish-button" onclick="publishContent()">Publish</button>
     </div>
+
+    <div id="result-container" class="result-container" style="display: none;">
+        <p>Your paste is ready!</p>
+        <div class="link-box">
+            <span id="paste-link"></span>
+            <button class="copy-btn" onclick="copyResultLink()">Copy</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -63,9 +74,18 @@
             })
         });
 
+        const resultContainer = document.getElementById('result-container');
+        const pasteLinkSpan = document.getElementById('paste-link');
+
         if (response.ok) {
-            alert("Your content has been published successfully! Click 'View Posts' at the top to see it.");
+            const data = await response.json();
+            const shareUrl = window.location.origin + '/view?id=' + data.id;
+            
+            pasteLinkSpan.textContent = shareUrl;
+            resultContainer.style.display = 'block';
+            
             document.querySelector('.editor').innerHTML = "";
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         } else {
             const text = await response.text();
             let errorMessage = "Unknown error";
@@ -77,6 +97,13 @@
             }
             alert("Failed to publish content: " + errorMessage);
         }
+    }
+
+    function copyResultLink() {
+        const link = document.getElementById('paste-link').textContent;
+        navigator.clipboard.writeText(link).then(() => {
+            alert("Link copied to clipboard!");
+        });
     }
 </script>
 </body>
