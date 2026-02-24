@@ -13,7 +13,7 @@ if (!$host || !$db || !$user || !$pass) {
 
 $charset = 'utf8mb4';
 
-$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require";
+$dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require;options='endpoint=ep-proud-hill-ai7aun9w'";
 $options = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
