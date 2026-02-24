@@ -85,8 +85,14 @@
             <a href="/" class="nav-link">← 돌아가기</a>
         </div>
         <div class="policy-header">
-            <h1>개인정보 처리방침</h1>
-            <p>본 방침은 2026년 2월 25일부터 시행됩니다.</p>
+            <div>
+                <h1>개인정보 처리방침</h1>
+                <p>버전: 1.1 (개인정보보호법 및 GDPR 반영)<br>시행일자: 2026년 2월 25일</p>
+            </div>
+            <div class="lang-switcher" style="margin-bottom: 10px;">
+                <a href="/privacy.html" class="lang-link active" style="text-decoration: none; color: white; font-size: 14px; padding: 5px 10px; border: 1px solid var(--accent-color); border-radius: 4px; background: var(--accent-color);">한국어</a>
+                <a href="/privacy-en.html" class="lang-link" style="text-decoration: none; color: var(--text-secondary); font-size: 14px; padding: 5px 10px; border: 1px solid #333; border-radius: 4px;">English</a>
+            </div>
         </div>
 
         <div class="labeling-section">
@@ -183,8 +189,27 @@
         <div class="policy-section">
             <h2>7. 개인정보 보호책임자</h2>
             <p>개인정보 처리에 관한 문의사항은 아래의 메일로 연락 주시기 바랍니다.</p>
-            <p>이메일: [USER_EMAIL_OR_SUPPORT_EMAIL]</p>
+            <p id="privacy-email-placeholder">이메일: </p>
         </div>
+
+        <script>
+            (function() {
+                const user = "hanjinkim";
+                const domain = "protonmail.com";
+                const placeholder = document.getElementById('privacy-email-placeholder');
+                const link = document.createElement('a');
+                link.href = 'mailto:' + user + '@' + domain;
+                link.style.color = 'var(--accent-color)';
+                link.textContent = user + '@' + domain;
+                placeholder.appendChild(link);
+            })();
+        </script>
     </div>
+    <footer class="site-footer">
+        <div class="container">
+            <hr>
+            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">개인정보 처리방침</a></p>
+        </div>
+    </footer>
 </body>
 </html>

@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 
 <body>
@@ -38,14 +40,23 @@
                     <div class="actions">
                         <?php if ($isSingle): ?>
                             <button class="copy-btn" onclick="copyCurrentUrl()">Copy Link</button>
+                            <button class="copy-btn" onclick="copyContent('content-<?php echo $row['id']; ?>')">Copy Content</button>
                         <?php else: ?>
                             <a href="/view?id=<?php echo $row['id']; ?>" class="share-link">Share Link</a>
+                            <button class="copy-btn" onclick="copyText(<?php echo json_encode($row['content']); ?>)">Copy Raw</button>
                         <?php endif; ?>
                     </div>
                 </div>
                 <?php if ($row['content'] !== null && $row['content'] !== "[Password Protected]"): ?>
                     <script>
-                        document.getElementById('content-<?php echo $row['id']; ?>').innerHTML = marked.parse(<?php echo json_encode($row['content']); ?>);
+                        (function() {
+                            const contentDiv = document.getElementById('content-<?php echo $row['id']; ?>');
+                            const rawContent = <?php echo json_encode($row['content']); ?>;
+                            contentDiv.innerHTML = marked.parse(rawContent);
+                            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                                hljs.highlightElement(block);
+                            });
+                        })();
                     </script>
                 <?php endif; ?>
             <?php endforeach; ?>
@@ -64,6 +75,20 @@
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
                 alert("Link copied to clipboard!");
+            });
+        }
+
+        function copyContent(elementId) {
+            const element = document.getElementById(elementId);
+            // Copy innerText to get the rendered text version
+            navigator.clipboard.writeText(element.innerText).then(() => {
+                alert("Content copied to clipboard!");
+            });
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
             });
         }
     </script>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - Copy and Paste</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .contact-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            color: #e0e0e0;
+            line-height: 1.8;
+            text-align: center;
+        }
+        .contact-header {
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .contact-info {
+            background: #1e1e1e;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border: 1px solid #333;
+            display: inline-block;
+            min-width: 300px;
+        }
+        .email-link {
+            font-size: 24px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+        .email-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="contact-container">
+        <div class="nav-links">
+            <a href="/" class="nav-link">← 돌아가기</a>
+        </div>
+        <div class="contact-header">
+            <h1>Contact</h1>
+            <p>문의사항이 있으시면 아래 이메일로 연락주시기 바랍니다.</p>
+        </div>
+
+        <div class="contact-info">
+            <div style="font-size: 14px; color: #888; margin-bottom: 10px;">Email Support</div>
+            <div id="email-placeholder"></div>
+        </div>
+
+        <script>
+            (function() {
+                const user = "hanjinkim";
+                const domain = "protonmail.com";
+                const placeholder = document.getElementById('email-placeholder');
+                const link = document.createElement('a');
+                link.href = 'mailto:' + user + '@' + domain;
+                link.className = 'email-link';
+                link.textContent = user + '@' + domain;
+                placeholder.appendChild(link);
+            })();
+        </script>
+
+        <div class="policy-section" style="text-align: left; margin-top: 40px;">
+            <p>보통 24시간 이내에 답변을 드리려고 노력하고 있습니다. 서비스 제안이나 버그 제보 등 어떤 의견이라도 환영합니다.</p>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <hr>
+            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/privacy.html" class="nav-link">개인정보 처리방침</a></p>
+        </div>
+    </footer>
+</body>
+</html>

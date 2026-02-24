@@ -8,11 +8,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 </head>
 <body>
 <div class="container">
     <div class="nav-links">
         <a href="/view" class="nav-link">View Posts</a>
+        <a href="/contact.html" class="nav-link">Contact</a>
     </div>
     <h1 class="title-text">Copy and Paste</h1>
     <hr>
@@ -41,7 +44,18 @@
         </div>
     </div>
 
-    <textarea class="editor" id="editor" placeholder="Write your markdown here..."></textarea>
+    <div class="editor-header">
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="showEditor()">Editor</button>
+            <button class="tab-btn" onclick="showPreview()">Preview</button>
+        </div>
+        <div class="char-count">Characters: <span id="char-count">0</span></div>
+    </div>
+    <div id="editor-wrapper">
+        <textarea class="editor" id="editor" placeholder="Write your markdown here..." oninput="onEditorInput()"></textarea>
+    </div>
+    <div id="preview-pane" class="preview-pane content hidden"></div>
+
     <div class="button-container">
         <button class="publish-button" onclick="publishContent()">Publish</button>
     </div>
@@ -56,6 +70,36 @@
 </div>
 
 <script>
+    function onEditorInput() {
+        const content = document.getElementById('editor').value;
+        document.getElementById('char-count').textContent = content.length;
+        if (!document.getElementById('preview-pane').classList.contains('hidden')) {
+            updatePreview();
+        }
+    }
+
+    function updatePreview() {
+        const content = document.getElementById('editor').value;
+        const previewPane = document.getElementById('preview-pane');
+        const dirty = marked.parse(content);
+        previewPane.innerHTML = DOMPurify.sanitize(dirty);
+    }
+
+    function showEditor() {
+        document.getElementById('editor-wrapper').classList.remove('hidden');
+        document.getElementById('preview-pane').classList.add('hidden');
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.querySelectorAll('.tab-btn')[1].classList.remove('active');
+    }
+
+    function showPreview() {
+        document.getElementById('editor-wrapper').classList.add('hidden');
+        document.getElementById('preview-pane').classList.remove('hidden');
+        document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        updatePreview();
+    }
+
     async function publishContent() {
         const content = document.getElementById('editor').value;
         if (content.trim() === "") {
@@ -92,6 +136,8 @@
             
             document.getElementById('editor').value = "";
             document.getElementById('password').value = "";
+            document.getElementById('char-count').textContent = "0";
+            showEditor();
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         } else {
             const text = await response.text();
@@ -117,7 +163,7 @@
 <footer class="site-footer">
     <div class="container">
         <hr>
-        <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/privacy.html" class="nav-link">개인정보 처리방침</a></p>
+        <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">개인정보 처리방침</a></p>
     </div>
 </footer>
 </body>
