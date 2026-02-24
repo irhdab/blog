@@ -46,6 +46,13 @@ try {
     if (!$stmt->fetch()) {
         $pdo->exec("ALTER TABLE writings ADD COLUMN password_hash TEXT NULL");
     }
+
+    // Check if burn_on_read column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='burn_on_read'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN burn_on_read BOOLEAN DEFAULT FALSE");
+    }
 } catch (Exception $e) {
     // Silently handle migration errors in production or log them
     error_log("Migration error: " . $e->getMessage());

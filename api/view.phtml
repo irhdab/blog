@@ -12,6 +12,25 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
+    <style>
+        /* Minimalist line numbers style */
+        .hljs-ln-numbers {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            text-align: center;
+            color: #444;
+            border-right: 1px solid #333;
+            vertical-align: top;
+            padding-right: 15px !important;
+        }
+        .hljs-ln-code { padding-left: 15px !important; }
+        .burn-notice { background: #3c1414; border: 1px solid #f00; padding: 10px; margin-bottom: 20px; font-size: 14px; color: #ff9999; }
+    </style>
 </head>
 
 <body>
@@ -21,11 +40,15 @@
         </div>
         <h1><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
         
+        <?php if (isset($burnMessage)): ?>
+            <div class="burn-notice"><?php echo $burnMessage; ?></div>
+        <?php endif; ?>
+
         <?php if ($isSingle && isset($hasPassword) && $hasPassword && !$passwordCorrect): ?>
             <div class="entry">
                 <p>This paste is password protected.</p>
                 <?php if (isset($passwordError)): ?>
-                    <p style="color: var(--error-color);"><?php echo $passwordError; ?></p>
+                    <p style="color: #ff5555;"><?php echo $passwordError; ?></p>
                 <?php endif; ?>
                 <form method="POST">
                     <input type="password" name="password" class="style-input" placeholder="Enter password" required>
@@ -41,13 +64,21 @@
                         <?php if ($isSingle): ?>
                             <button class="copy-btn" onclick="copyCurrentUrl()">Copy Link</button>
                             <button class="copy-btn" onclick="copyContent('content-<?php echo $row['id']; ?>')">Copy Content</button>
+                            <?php if ($hasPassword): ?>
+                                <hr style="margin: 10px 0; border-top: 1px solid #222;">
+                                <form method="POST" style="display: inline-block;">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="password" name="password" class="style-input" style="padding: 2px 5px; font-size: 11px;" placeholder="Password to delete" required>
+                                    <button type="submit" class="copy-btn" style="color: #ff5555; border-color: #331111;">Delete Post</button>
+                                </form>
+                            <?php endif; ?>
                         <?php else: ?>
                             <a href="/view?id=<?php echo $row['id']; ?>" class="share-link">Share Link</a>
                             <button class="copy-btn" onclick="copyText(<?php echo json_encode($row['content']); ?>)">Copy Raw</button>
                         <?php endif; ?>
                     </div>
                 </div>
-                <?php if ($row['content'] !== null && $row['content'] !== "[Password Protected]"): ?>
+                <?php if ($row['content'] !== null && $row['content'] !== "[Password Protected]" && $row['content'] !== "[Burn on Read]"): ?>
                     <script>
                         (function() {
                             const contentDiv = document.getElementById('content-<?php echo $row['id']; ?>');
@@ -55,6 +86,7 @@
                             contentDiv.innerHTML = marked.parse(rawContent);
                             contentDiv.querySelectorAll('pre code').forEach((block) => {
                                 hljs.highlightElement(block);
+                                hljs.lineNumbersBlock(block);
                             });
                         })();
                     </script>

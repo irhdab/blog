@@ -29,6 +29,7 @@
                 <option value="1h">1 Hour</option>
                 <option value="1d">1 Day</option>
                 <option value="1w">1 Week</option>
+                <option value="burn">Burn After Reading</option>
             </select>
         </div>
         <div class="option-group">
@@ -66,13 +67,33 @@
             <span id="paste-link"></span>
             <button class="copy-btn" onclick="copyResultLink()">Copy</button>
         </div>
+        <p style="font-size: 11px; margin-top: 10px;">Pro tip: You can access the raw text by adding <code>&raw=1</code> to the URL.</p>
     </div>
 </div>
 
 <script>
+    // Load draft on startup
+    window.addEventListener('DOMContentLoaded', () => {
+        const draft = localStorage.getItem('paste_draft');
+        if (draft) {
+            document.getElementById('editor').value = draft;
+            document.getElementById('char-count').textContent = draft.length;
+            console.log("Draft restored from local storage.");
+        }
+
+        // Keyboard shortcuts
+        document.getElementById('editor').addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                publishContent();
+            }
+        });
+    });
+
     function onEditorInput() {
         const content = document.getElementById('editor').value;
         document.getElementById('char-count').textContent = content.length;
+        localStorage.setItem('paste_draft', content); // Save draft
         if (!document.getElementById('preview-pane').classList.contains('hidden')) {
             updatePreview();
         }
@@ -129,12 +150,13 @@
 
         if (response.ok) {
             const data = await response.json();
-            const shareUrl = window.location.origin + '/view?id=' + data.id;
+            const shareUrl = window.location.origin + '/v/' + data.id;
             
             pasteLinkSpan.textContent = shareUrl;
             resultContainer.style.display = 'block';
             
             document.getElementById('editor').value = "";
+            localStorage.removeItem('paste_draft'); // Clear draft on success
             document.getElementById('password').value = "";
             document.getElementById('char-count').textContent = "0";
             showEditor();

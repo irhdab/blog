@@ -27,33 +27,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($expiration !== 'never') {
             $interval = '';
-            switch ($expiration) {
-                case '10m':
-                    $interval = '10 minutes';
-                    break;
-                case '1h':
-                    $interval = '1 hour';
-                    break;
-                case '1d':
-                    $interval = '1 day';
-                    break;
-                case '1w':
-                    $interval = '1 week';
-                    break;
-                default:
-                    $interval = '';
-                    break;
-            }
-
-            if ($interval) {
-                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash) VALUES (?, NOW() + CAST(? AS INTERVAL), ?, ?)");
-                $success = $stmt->execute([$content, $interval, $exposure, $password_hash]);
-            } else {
-                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash) VALUES (?, NULL, ?, ?)");
+            if ($expiration === 'burn') {
+                $burn_on_read = true;
+                $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NULL, ?, ?, TRUE)");
                 $success = $stmt->execute([$content, $exposure, $password_hash]);
+            } else {
+                switch ($expiration) {
+                    case '10m':
+                        $interval = '10 minutes';
+                        break;
+                    case '1h':
+                        $interval = '1 hour';
+                        break;
+                    case '1d':
+                        $interval = '1 day';
+                        break;
+                    case '1w':
+                        $interval = '1 week';
+                        break;
+                }
+
+                if ($interval) {
+                    $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NOW() + CAST(? AS INTERVAL), ?, ?, FALSE)");
+                    $success = $stmt->execute([$content, $interval, $exposure, $password_hash]);
+                } else {
+                    $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NULL, ?, ?, FALSE)");
+                    $success = $stmt->execute([$content, $exposure, $password_hash]);
+                }
             }
         } else {
-            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash) VALUES (?, NULL, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO writings (content, expires_at, exposure, password_hash, burn_on_read) VALUES (?, NULL, ?, ?, FALSE)");
             $success = $stmt->execute([$content, $exposure, $password_hash]);
         }
 

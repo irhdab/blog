@@ -6,6 +6,7 @@
   },
   "rewrites": [
     { "source": "/save", "destination": "/api/save_content.php" },
-    { "source": "/view", "destination": "/api/view_content.php" }
+    { "source": "/view", "destination": "/api/view_content.php" },
+    { "source": "/v/:id", "destination": "/api/view_content.php?id=:id" }
   ]
 }
