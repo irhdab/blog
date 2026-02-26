@@ -137,7 +137,7 @@
                                 style="text-decoration: none; display: inline-block;">View</a>
                             <button class="copy-btn" onclick="copyShareLink('<?php echo $row['uid'] ?: $row['id']; ?>')">Copy
                                 Link</button>
-                            <button class="copy-btn" onclick="copyText(<?php echo json_encode($row['content']); ?>)">Copy
+                            <button class="copy-btn" onclick="copyText(<?php echo htmlspecialchars(json_encode($row['content'])); ?>)">Copy
                                 Raw</button>
                         <?php endif; ?>
                     </div>
@@ -147,7 +147,7 @@
                         (function () {
                             const isEncrypted = <?php echo !empty($row['is_encrypted']) ? 'true' : 'false'; ?>;
                             if (!isEncrypted) {
-                                renderContent('<?php echo $row['id']; ?>', <?php echo json_encode($row['content']); ?>);
+                                renderContent('<?php echo $row['id']; ?>', <?php echo json_encode($row['content'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>);
                             }
                         })();
                     </script>
