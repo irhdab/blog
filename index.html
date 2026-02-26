@@ -16,7 +16,10 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/CodeJar/3.2.2/codejar.min.js"></script>
+    <script type="module">
+        import { CodeJar } from 'https://cdn.jsdelivr.net/npm/codejar@3.2.2/codejar.js';
+        window.CodeJar = CodeJar;
+    </script>
     <style>
         .katex { font-size: 1.1em; }
         .embed-container { margin: 15px 0; max-width: 100%; }
@@ -88,7 +91,7 @@
         </div>
     </div>
     <div id="editor-wrapper">
-        <div class="editor codejar" id="editor" placeholder="Write your markdown here..."></div>
+        <div class="editor codejar" id="editor" placeholder="Write your markdown here..." contenteditable="true"></div>
     </div>
     <div id="preview-pane" class="preview-pane content hidden"></div>
 
