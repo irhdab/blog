@@ -45,6 +45,10 @@ blog/
 └── vercel.json            # Vercel serverless configuration
 ```
 
+
+## Screenshot
+<img width="936" height="580" alt="Screenshot 2026-02-26 at 18 41 49" src="https://github.com/user-attachments/assets/20e0b914-53df-479e-bb99-999338811c31" />
+
 ## Security Notice
 
 KitePad prioritizes security:
