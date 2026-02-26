@@ -105,6 +105,9 @@ hr {
     resize: vertical;
     outline: none;
     box-sizing: border-box;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 
@@ -193,7 +196,7 @@ hr {
 }
 
 .style-input:focus {
-    border-color: var(--accent-color);
+    border-color: var(--accent);
 }
 
 /* Markdown Rendering Styles */
@@ -216,7 +219,7 @@ hr {
 }
 
 .content blockquote {
-    border-left: 4px solid var(--accent-color);
+    border-left: 4px solid var(--accent);
     margin-left: 0;
     padding-left: 15px;
     color: #aaa;
@@ -459,3 +462,48 @@ hr {
   display: none !important;
 }
 
+/* Zen Mode */
+body.zen-mode .nav-links,
+body.zen-mode .header-main,
+body.zen-mode .secret-banner,
+body.zen-mode hr,
+body.zen-mode .site-footer,
+body.zen-mode .actions,
+body.zen-mode .timestamp,
+body.zen-mode .view-stats,
+body.zen-mode .burn-notice {
+    display: none !important;
+}
+
+body.zen-mode .container {
+    max-width: 1000px; /* Wider reading area */
+    padding-top: 40px;
+}
+
+body.zen-mode .entry {
+    border: none;
+    padding-left: 0;
+}
+
+.zen-exit-btn {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+.zen-exit-btn:hover {
+    background: var(--border-color);
+}
+
+body.zen-mode .zen-exit-btn {
+    display: block;
+}

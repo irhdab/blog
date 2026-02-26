@@ -75,8 +75,15 @@ try {
                 $row['content'] = null;
             }
 
-            // Increment view count if accessible
-            if ($passwordCorrect) {
+            // Detect if the request is from a bot/link-preview
+            $isBot = false;
+            $userAgent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
+            if (preg_match('/(bot|crawl|spider|slack|whatsapp|telegram|facebookexternalhit|kakao|line|twitter|discord|apple)/i', $userAgent)) {
+                $isBot = true;
+            }
+
+            // Increment view count if accessible and NOT a bot
+            if ($passwordCorrect && !$isBot) {
                 $stmt = $pdo->prepare("UPDATE writings SET view_count = view_count + 1 WHERE id = ?");
                 $stmt->execute([$row['id']]);
                 $row['view_count']++; // Update local row for current view
@@ -135,7 +142,7 @@ try {
         $offset = ($page - 1) * $limit;
 
         // Fetch limit + 1 to check if there is a next page
-        $sql = "SELECT id, uid, content, title, created_at, expires_at, password_hash, burn_on_read, view_count, is_encrypted 
+        $sql = "SELECT id, uid, content, title, created_at, expires_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted 
                 FROM writings 
                 WHERE (expires_at IS NULL OR expires_at > NOW()) 
                 AND exposure = 'public' 

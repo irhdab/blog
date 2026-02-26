@@ -18,8 +18,6 @@ header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
 header("Referrer-Policy: strict-origin-when-cross-origin");
 
-$charset = 'utf8mb4';
-
 $dsn = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require;options='endpoint=ep-proud-hill-ai7aun9w'";
 $options = [
     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -46,8 +44,15 @@ if (empty($_COOKIE['csrf_token'])) {
 
 function check_rate_limit($pdo, $key, $limit, $window_seconds)
 {
-    // Basic IP based rate limiting
-    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    // Use HTTP_X_FORWARDED_FOR for Vercel/Cloudflare, fallback to REMOTE_ADDR
+    $ip = 'unknown';
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $ipList = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+        $ip = trim($ipList[0]);
+    } else if (!empty($_SERVER['REMOTE_ADDR'])) {
+        $ip = $_SERVER['REMOTE_ADDR'];
+    }
+
     $identifier = "rl_" . $key . "_" . $ip;
 
     $stmt = $pdo->prepare("SELECT count FROM rate_limits WHERE identifier = ? AND last_request > (NOW() - CAST(? AS INTERVAL))");
@@ -155,6 +160,13 @@ try {
     $stmt->execute();
     if (!$stmt->fetch()) {
         $pdo->exec("ALTER TABLE writings ADD COLUMN title TEXT NULL");
+    }
+
+    // Check if edit_token_hash column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='edit_token_hash'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN edit_token_hash TEXT NULL");
     }
 } catch (Exception $e) {
     // Silently handle migration errors in production or log them

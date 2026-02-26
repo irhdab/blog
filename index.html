@@ -16,11 +16,13 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/CodeJar/3.2.2/codejar.min.js"></script>
     <style>
         .katex { font-size: 1.1em; }
         .embed-container { margin: 15px 0; max-width: 100%; }
         iframe { border-radius: 8px; border: none; }
     </style>
+    <script src="/i18n.js"></script>
 </head>
 <body>
 <div class="container">
@@ -87,7 +89,7 @@
         </div>
     </div>
     <div id="editor-wrapper">
-        <textarea class="editor" id="editor" placeholder="Write your markdown here..." oninput="onEditorInput()"></textarea>
+        <div class="editor codejar" id="editor" placeholder="Write your markdown here..."></div>
     </div>
     <div id="preview-pane" class="preview-pane content hidden"></div>
 
@@ -102,7 +104,7 @@
             <button class="copy-btn" onclick="copyResultLink()">Copy</button>
         </div>
         <div id="qrcode-container" style="margin-top: 20px; display: flex; justify-content: center; background: white; padding: 10px; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto;"></div>
-        <p style="font-size: 11px; margin-top: 10px;">Pro tip: You can access the raw text by adding <code>&raw=1</code> to the URL.</p>
+        <p style="font-size: 11px; margin-top: 10px;">Pro tip: You can access the raw text by adding <code>?raw=1</code> to the URL.</p>
     </div>
 </div>
 
@@ -117,21 +119,39 @@
 
     const MAX_PASTE_SIZE = 1024 * 1024; // 1MB
 
+    let debounceTimer;
+    let jar; // CodeJar instance
+
     // Load draft on startup
     window.addEventListener('DOMContentLoaded', () => {
-        const draft = localStorage.getItem('paste_draft');
-        if (draft) {
-            document.getElementById('editor').value = draft;
-            updateStats(draft);
-            console.log("Draft restored from local storage.");
-        }
+        // Initialize CodeJar for syntax highlighting
+        const editorElement = document.getElementById('editor');
+        const highlight = editor => {
+            // highlight.js does not line-wrap natively well if we don't handle it, 
+            // but for markdown/code we can let it highlight
+            editor.innerHTML = hljs.highlightAuto(editor.textContent).value;
+        };
+        // If we want raw markdown without weird syntax bugs while typing, 
+        // a simple highlighter wrapper is better. For now we just use a basic text highlight or no highlight 
+        // until we actually want the syntax to colorize.
+        // Actually, the user asked for Prism.js or CodeJar with Highlight.js. 
+        // Let's use Highlight.js with a markdown language enforced if possible, or auto.
+        const highlightMarkdown = editor => {
+            let code = editor.textContent;
+            editor.innerHTML = hljs.highlight(code, {language: 'markdown'}).value;
+        };
+        jar = CodeJar(editorElement, highlightMarkdown, {tab: '  '});
+        
+        jar.onUpdate(code => {
+            onEditorInput(code);
+        });
 
         // Keyboard shortcuts
-        document.getElementById('editor').addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-                e.preventDefault();
-                publishContent();
-            }
+        editorElement.addEventListener('keydown', (e) => {
+             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                 e.preventDefault();
+                 publishContent();
+             }
         });
 
         // Handle Edit/Clone Mode
@@ -139,6 +159,15 @@
         const editUid = params.get('edit');
         const cloneUid = params.get('clone');
         const targetUid = editUid || cloneUid;
+        
+        let draftKey = 'paste_draft';
+        if (editUid) draftKey += '_edit_' + editUid;
+        const draft = localStorage.getItem(draftKey);
+        if (draft) {
+            jar.updateCode(draft);
+            updateStats(draft);
+            console.log("Draft restored from local storage.");
+        }
 
         if (targetUid) {
             fetch(`/api/view_content.php?id=${targetUid}&json=1`)
@@ -156,7 +185,7 @@
                 })
                 .then(data => {
                     if (!data || !data.content) return;
-                    document.getElementById('editor').value = data.content;
+                    jar.updateCode(data.content);
                     updateStats(data.content);
                     
                     // Restore metadata
@@ -210,8 +239,7 @@
         return patterns.some(pattern => pattern.test(text));
     }
 
-    function onEditorInput() {
-        const content = document.getElementById('editor').value;
+    function onEditorInput(content) {
         updateStats(content);
         
         // Secret Scanner
@@ -222,24 +250,32 @@
             banner.classList.add('hidden');
         }
 
-        localStorage.setItem('paste_draft', content); // Save draft
+        let draftKey = 'paste_draft';
+        if (window.isEditMode && window.editUid) draftKey += '_edit_' + window.editUid;
+        localStorage.setItem(draftKey, content); // Save draft
+        
         if (!document.getElementById('preview-pane').classList.contains('hidden')) {
-            updatePreview();
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updatePreview, 300); // 300ms debounce
         }
     }
 
     function autoEmbed(html) {
-        // Youtube
-        return html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
+        // Youtube Links (marked turns them into anchor tags first)
+        html = html.replace(/<a[^>]*href="https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)"[^>]*>.*?<\/a>/g,
             '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+        // Plain Youtube URLs (not inside quotes)
+        html = html.replace(/(?<!["'])(https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+))/g,
+            '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$2" frameborder="0" allowfullscreen></iframe></div>');
+        return html;
     }
 
     function updatePreview() {
-        const content = document.getElementById('editor').value;
+        const content = jar.toString();
         const previewPane = document.getElementById('preview-pane');
         let html = marked.parse(content);
         html = autoEmbed(html);
-        previewPane.innerHTML = DOMPurify.sanitize(html);
+        previewPane.innerHTML = DOMPurify.sanitize(html, { ADD_TAGS: ['iframe'], ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'] });
         
         // Highlight.js
         previewPane.querySelectorAll('pre code').forEach((block) => {
@@ -309,8 +345,7 @@
             alert("Security session is still loading. Please wait a second and try again.");
             return;
         }
-        const contentArea = document.getElementById('editor');
-        let content = contentArea.value;
+        let content = jar.toString();
         if (content.trim() === "") {
             alert("Please write something before publishing.");
             return;
@@ -343,6 +378,11 @@
             }
         }
 
+        let editToken = null;
+        if (window.isEditMode && window.editUid) {
+            editToken = localStorage.getItem('edit_token_' + window.editUid);
+        }
+
         const response = await fetch('/save', {
             method: 'POST',
             headers: {
@@ -357,6 +397,7 @@
                 view_limit: viewLimit,
                 is_encrypted: isEncrypted,
                 uid: window.isEditMode ? window.editUid : null,
+                edit_token: editToken,
                 csrf_token: window.csrfToken
             })
         });
@@ -366,7 +407,14 @@
 
         if (response.ok) {
             const data = await response.json();
-            const shareUrl = window.location.origin + '/v/' + data.id; // data.id is now a UUID
+            
+            // Save edit token for future updates
+            if (data.edit_token) {
+                localStorage.setItem('edit_token_' + data.id, data.edit_token);
+            }
+
+            // Create share URL (without the edit token to prevent accidental leakage)
+            let shareUrl = window.location.origin + '/v/' + (data.id || window.editUid); 
             
             pasteLinkSpan.textContent = shareUrl;
             
@@ -389,8 +437,10 @@
                 window.location.href = shareUrl;
             }, 800); 
             
-            contentArea.value = "";
-            localStorage.removeItem('paste_draft'); // Clear draft on success
+            jar.updateCode("");
+            let draftKey = 'paste_draft';
+            if (window.isEditMode && window.editUid) draftKey += '_edit_' + window.editUid;
+            localStorage.removeItem(draftKey); // Clear draft on success
             document.getElementById('password').value = "";
             document.getElementById('view_limit').value = "";
             document.getElementById('is_encrypted').checked = false;
