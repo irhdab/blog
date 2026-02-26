@@ -43,7 +43,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($view_limit <= 0)
             $view_limit = null;
-        $password = $data['password'] ?? '';
         $password_hash = !empty($password) ? password_hash($password, PASSWORD_BCRYPT) : null;
 
         if ($edit_uid) {

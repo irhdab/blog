@@ -4,9 +4,8 @@ try {
     $raw = isset($_GET['raw']);
 
     if ($id_raw = $_GET['id'] ?? null) {
-        // Individual post: Search by UID or ID (for backward compatibility)
-        $isNumeric = is_numeric($id_raw);
-        $condition = $isNumeric ? "id = ?" : "uid = ?";
+        // Individual post: Search by UID ONLY for security (prevent sequential ID guessing)
+        $condition = "uid = ?";
 
         $sql = "SELECT id, uid, content, title, created_at, expires_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted 
                 FROM writings 
@@ -76,10 +75,16 @@ try {
             }
 
             // Raw API Support
-            if ($raw && $passwordCorrect) {
-                header('Content-Type: text/plain; charset=utf-8');
-                echo $row['content'];
-                exit;
+            if ($raw) {
+                if ($passwordCorrect) {
+                    header('Content-Type: text/plain; charset=utf-8');
+                    echo $row['content'];
+                    exit;
+                } else {
+                    http_response_code(401);
+                    echo "Unauthorized: Password required for raw access.";
+                    exit;
+                }
             }
 
             $result = [$row]; // Emulate iterable for simple logic in phtml

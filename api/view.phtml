@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
@@ -89,8 +89,13 @@
     <div class="container">
         <div class="nav-links">
             <a href="/" class="nav-link">Create New Paste</a>
+            <a href="/view" class="nav-link">View Posts</a>
+            <a href="/contact.html" class="nav-link">Contact</a>
         </div>
-        <h1><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
+        <div class="header-main">
+            <h1 class="title-text"><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
+            <span class="tagline">Zero-knowledge pastebin. Configure expiry, view limit and end‑to‑end encryption in one place.</span>
+        </div>
 
         <?php if (isset($burnMessage)): ?>
             <div class="burn-notice"><?php echo $burnMessage; ?></div>

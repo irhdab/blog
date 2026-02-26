@@ -9,8 +9,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
+    <style>
+        .katex { font-size: 1.1em; }
+        .embed-container { margin: 15px 0; max-width: 100%; }
+        iframe { border-radius: 8px; border: none; }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -122,11 +132,25 @@
 
         if (targetUid) {
             fetch(`/api/view_content.php?id=${targetUid}&raw=1`)
-                .then(res => {
+                .then(async res => {
+                    if (res.status === 401) {
+                        const pw = prompt("This post is password protected. Enter password to edit/clone:");
+                        if (pw) {
+                            // Try again with password
+                            // We don't have a direct 'raw' with password POST API easily, 
+                            // but we can try to fetch the detail page and extract or just alert.
+                            // For now, let's redirect them to the view page to unlock first, 
+                            // OR just say it's not supported via direct URL yet.
+                            alert("Please view and unlock the post first, then click Edit/Clone from there.");
+                            window.location.href = `/v/${targetUid}`;
+                        }
+                        throw new Error("Unauthorized");
+                    }
                     if (!res.ok) throw new Error("Failed to fetch post");
                     return res.text();
                 })
                 .then(content => {
+                    if (!content) return;
                     document.getElementById('editor').value = content;
                     updateStats(content);
                     
@@ -135,13 +159,13 @@
                         window.editUid = editUid;
                         document.querySelector('.publish-button').textContent = "Update Post";
                         document.querySelector('.title-text').textContent = "Edit Paste";
-                        
-                        // We might want to fetch full metadata (title, etc) if it's an edit
-                        // But since standard view is phtml, we'd need another API endpoint or use raw=1 which only returns content.
-                        // Let's assume content is the most important. 
                     }
                 })
-                .catch(err => console.error("Error loading post:", err));
+                .catch(err => {
+                    if (err.message !== "Unauthorized") {
+                        console.error("Error loading post:", err);
+                    }
+                });
         }
     });
 
@@ -172,11 +196,34 @@
         }
     }
 
+    function autoEmbed(html) {
+        // Youtube
+        return html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
+            '<div class="embed-container"><iframe width="100%" height="315" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+    }
+
     function updatePreview() {
         const content = document.getElementById('editor').value;
         const previewPane = document.getElementById('preview-pane');
-        const dirty = marked.parse(content);
-        previewPane.innerHTML = DOMPurify.sanitize(dirty);
+        let html = marked.parse(content);
+        html = autoEmbed(html);
+        previewPane.innerHTML = DOMPurify.sanitize(html);
+        
+        // Highlight.js
+        previewPane.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+
+        // KaTeX
+        renderMathInElement(previewPane, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+        });
     }
 
     function showEditor() {
