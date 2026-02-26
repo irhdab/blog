@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>개인정보 처리방침 - Copy and Paste</title>
+    <title>Privacy Policy - Copy and Paste</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -20,6 +20,9 @@
             border-bottom: 2px solid var(--accent-color);
             padding-bottom: 20px;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
         }
         .labeling-section {
             display: flex;
@@ -36,7 +39,7 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            width: 120px;
+            width: 130px;
         }
         .label-icon {
             font-size: 24px;
@@ -82,114 +85,111 @@
 <body>
     <div class="policy-container">
         <div class="nav-links">
-            <a href="/" class="nav-link">← 돌아가기</a>
+            <a href="/" class="nav-link">← Back</a>
         </div>
         <div class="policy-header">
             <div>
-                <h1>개인정보 처리방침</h1>
-                <p>버전: 1.1 (개인정보보호법 및 GDPR 반영)<br>시행일자: 2026년 2월 25일</p>
-            </div>
-            <div class="lang-switcher" style="margin-bottom: 10px;">
-                <a href="/privacy.html" class="lang-link active" style="text-decoration: none; color: white; font-size: 14px; padding: 5px 10px; border: 1px solid var(--accent-color); border-radius: 4px; background: var(--accent-color);">한국어</a>
-                <a href="/privacy-en.html" class="lang-link" style="text-decoration: none; color: var(--text-secondary); font-size: 14px; padding: 5px 10px; border: 1px solid #333; border-radius: 4px;">English</a>
+                <h1>Privacy Policy</h1>
+                <p>Version: 1.1 (GDPR Compliant)<br>Effective Date: February 25, 2026</p>
             </div>
         </div>
 
         <div class="labeling-section">
             <div class="label-item">
-                <div class="label-icon">📄</div>
-                <div class="label-text">개인정보 수집<br>최소화</div>
+                <div class="label-icon">⚖️</div>
+                <div class="label-text">Lawfulness &<br>Transparency</div>
+            </div>
+            <div class="label-item">
+                <div class="label-icon">🎯</div>
+                <div class="label-text">Purpose<br>Limitation</div>
+            </div>
+            <div class="label-item">
+                <div class="label-icon">📉</div>
+                <div class="label-text">Data<br>Minimization</div>
             </div>
             <div class="label-item">
                 <div class="label-icon">🔐</div>
-                <div class="label-text">비밀번호<br>암호화 저장</div>
+                <div class="label-text">Integrity &<br>Confidentiality</div>
             </div>
             <div class="label-item">
-                <div class="label-icon">⏳</div>
-                <div class="label-text">보유기간<br>설정 기능</div>
-            </div>
-            <div class="label-item">
-                <div class="label-icon">🚫</div>
-                <div class="label-text">제3자 제공<br>없음</div>
+                <div class="label-icon">👤</div>
+                <div class="label-text">Rights of<br>Data Subjects</div>
             </div>
         </div>
 
         <div class="policy-section">
-            <h2>1. 개인정보의 처리 목적</h2>
-            <p>'Copy and Paste'는 다음의 목적을 위하여 개인정보를 처리합니다. 처리하고 있는 개인정보는 다음의 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</p>
+            <h2>1. Core Principles (GDPR Art. 5)</h2>
+            <p>We process your data according to the following 7 key principles:</p>
             <ul>
-                <li><strong>게시물 관리</strong>: 익명 게시물 작성 및 조회, 게시물 보호를 위한 비밀번호 검증</li>
-                <li><strong>서비스 안정성 확보</strong>: 부정이용 방지 및 시스템 보안 강화</li>
+                <li><strong>Lawfulness, Fairness, and Transparency</strong>: Data is processed legally and transparently.</li>
+                <li><strong>Purpose Limitation</strong>: Data is collected for specified, explicit, and legitimate purposes.</li>
+                <li><strong>Data Minimization</strong>: We only collect what is strictly necessary.</li>
+                <li><strong>Accuracy</strong>: We keep data accurate and up to date.</li>
+                <li><strong>Storage Limitation</strong>: Data is deleted once the purpose is fulfilled.</li>
+                <li><strong>Integrity and Confidentiality</strong>: We use robust security measures to protect your data.</li>
+                <li><strong>Accountability</strong>: We are responsible for and can demonstrate compliance with these principles.</li>
             </ul>
         </div>
 
         <div class="policy-section">
-            <h2>2. 처리하는 개인정보의 항목</h2>
-            <p>서비스 이용 과정에서 다음과 같은 정보들이 수집될 수 있습니다.</p>
+            <h2>2. Data Controller & DPO</h2>
+            <p>The Data Controller for this service is <strong>hanjinkim</strong>.</p>
+            <p><strong>Data Protection Officer (DPO):</strong></p>
+            <p id="privacy-email-placeholder">Email: </p>
+        </div>
+
+        <div class="policy-section">
+            <h2>3. Information We Collect</h2>
             <table class="policy-table">
                 <thead>
                     <tr>
-                        <th>구분</th>
-                        <th>항목</th>
-                        <th>수집 목적</th>
+                        <th>Category</th>
+                        <th>Items</th>
+                        <th>Legal Basis (GDPR Art. 6)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>필수항목</td>
-                        <td>게시물 본문 내용</td>
-                        <td>서비스 제공 및 게시물 저장</td>
+                        <td>User Content</td>
+                        <td>Paste content body</td>
+                        <td>Performance of a contract</td>
                     </tr>
                     <tr>
-                        <td>선택항목</td>
-                        <td>게시물 보호 비밀번호</td>
-                        <td>게시물 접근 제어 및 보안</td>
+                        <td>Security</td>
+                        <td>Hashed passwords (BCRYPT)</td>
+                        <td>Legitimate interests (Security)</td>
                     </tr>
                     <tr>
-                        <td>자동수집</td>
-                        <td>IP 주소, 접속 로그</td>
-                        <td>보안 및 부정이용 방지</td>
+                        <td>Technical</td>
+                        <td>IP addresses, Access logs</td>
+                        <td>Legitimate interests (Security)</td>
                     </tr>
                 </tbody>
             </table>
-            <p>※ 비밀번호는 SHA-256 또는 BCRYPT 방식으로 암호화(해싱)되어 저장되며, 운영자도 원문을 알 수 없습니다.</p>
         </div>
 
         <div class="policy-section">
-            <h2>3. 개인정보의 처리 및 보유 기간</h2>
+            <h2>4. Your Rights (GDPR)</h2>
+            <p>Under the GDPR, you have the following rights regarding your personal data:</p>
             <ul>
-                <li>이용자가 설정한 <strong>만료 시간(Expiration)</strong>에 따라 자동으로 파기됩니다.</li>
-                <li>만료 시간을 설정하지 않은 경우 서비스 종료 시까지 또는 이용자의 요청 시까지 보유합니다.</li>
+                <li><strong>Right of Access</strong>: You can request a copy of your data.</li>
+                <li><strong>Right to Rectification</strong>: You can request correction of inaccurate data.</li>
+                <li><strong>Right to Erasure ('Right to be Forgotten')</strong>: You can request deletion of your data.</li>
+                <li><strong>Right to Restrict Processing</strong>: You can request a limit on how we use your data.</li>
+                <li><strong>Right to Data Portability</strong>: You can request your data in a structured, machine-readable format.</li>
+                <li><strong>Right to Object</strong>: You can object to data processing based on legitimate interests.</li>
             </ul>
+            <p>To exercise these rights, please contact our DPO via email. Note: For anonymous pastes, we may require the content's password to verify ownership.</p>
         </div>
 
         <div class="policy-section">
-            <h2>4. 개인정보의 파기 절차 및 방법</h2>
-            <p>개인정보 보유기간이 경과하거나 처리목적이 달성된 경우에는 지체 없이 해당 개인정보를 파기합니다.</p>
-            <ul>
-                <li><strong>전자적 파일</strong>: 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제</li>
-                <li><strong>DB 레코드</strong>: 해당 로우(Row)를 즉시 삭제</li>
-            </ul>
+            <h2>5. International Data Transfers</h2>
+            <p>Your data is stored and processed in <strong>South Korea</strong> (the location of our servers via Vercel/PostgreSQL). South Korea has an Adequacy Decision from the European Commission, ensuring an equivalent level of data protection to that of the EU (GDPR Art. 45).</p>
         </div>
 
         <div class="policy-section">
-            <h2>5. 정보주체의 권리·의무 및 행사방법</h2>
-            <p>정보주체는 언제든지 자신의 개인정보(게시물)에 대한 열람, 정정, 삭제를 요청할 수 있습니다. 익명 서비스 특성상 비밀번호를 분실한 경우 본인 확인에 어려움이 있을 수 있으니 유의하시기 바랍니다.</p>
-        </div>
-
-        <div class="policy-section">
-            <h2>6. 개인정보의 안전성 확보조치</h2>
-            <p>서비스는 개인정보의 안전성 확보를 위해 다음과 같은 조치를 취하고 있습니다.</p>
-            <ul>
-                <li><strong>기술적 조치</strong>: 비밀번호 암호화 저장, 데이터 전송 암호화</li>
-                <li><strong>관리적 조치</strong>: 최소한의 권한 부여</li>
-            </ul>
-        </div>
-
-        <div class="policy-section">
-            <h2>7. 개인정보 보호책임자</h2>
-            <p>개인정보 처리에 관한 문의사항은 아래의 메일로 연락 주시기 바랍니다.</p>
-            <p id="privacy-email-placeholder">이메일: </p>
+            <h2>6. Data Breach Notification</h2>
+            <p>In the event of a personal data breach that is likely to result in a high risk to your rights and freedoms, we will notify the competent supervisory authority and the affected data subjects within <strong>72 hours</strong> of becoming aware of the breach, where feasible.</p>
         </div>
 
         <script>
@@ -208,7 +208,7 @@
     <footer class="site-footer">
         <div class="container">
             <hr>
-            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">개인정보 처리방침</a></p>
+            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">Privacy Policy</a></p>
         </div>
     </footer>
 </body>

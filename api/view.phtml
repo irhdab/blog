@@ -140,7 +140,7 @@
                 </div>
                 <?php if ($row['content'] !== null && $row['content'] !== "[Password Protected]" && $row['content'] !== "[Burn on Read]"): ?>
                     <script>
-                        (function() {
+                        (function () {
                             const isEncrypted = <?php echo !empty($row['is_encrypted']) ? 'true' : 'false'; ?>;
                             if (!isEncrypted) {
                                 renderContent('<?php echo $row['id']; ?>', <?php echo json_encode($row['content']); ?>);
@@ -174,86 +174,87 @@
     <footer class="site-footer">
         <div class="container">
             <hr>
-            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/privacy.html" class="nav-link">개인정보 처리방침</a>
+            <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/privacy.html" class="nav-link">Privacy
+                    Policy</a>
             </p>
         </div>
     </footer>
     <script>
         // E2EE Decryption
-    async function deriveKey(password, salt) {
-        const encoder = new TextEncoder();
-        const baseKey = await crypto.subtle.importKey(
-            "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
-        );
-        return crypto.subtle.deriveKey(
-            { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
-            baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
-        );
-    }
-
-    async function decryptData(base64Data, password) {
-        const combined = new Uint8Array(atob(base64Data).split("").map(c => c.charCodeAt(0)));
-        const salt = combined.slice(0, 16);
-        const iv = combined.slice(16, 28);
-        const encrypted = combined.slice(28);
-        
-        const key = await deriveKey(password, salt);
-        const decrypted = await crypto.subtle.decrypt(
-            { name: "AES-GCM", iv }, key, encrypted
-        );
-        return new TextDecoder().decode(decrypted);
-    }
-
-    async function handleDecrypt(event, id, encryptedContent) {
-        event.preventDefault();
-        const password = document.getElementById(`decrypt-pw-${id}`).value;
-        try {
-            const decrypted = await decryptData(encryptedContent, password);
-            renderContent(id, decrypted);
-        } catch (e) {
-            alert("Decryption failed. Incorrect password?");
+        async function deriveKey(password, salt) {
+            const encoder = new TextEncoder();
+            const baseKey = await crypto.subtle.importKey(
+                "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
+            );
+            return crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+                baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+            );
         }
-    }
 
-    function autoEmbed(html) {
-        // Youtube
-        html = html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g, 
-            '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
-        // Twitter (X) - Simple link to card if possible, but cards usually need JS. We'll at least make it look distinct or use a simple embed if available.
-        // For simplicity, we'll just handle Youtube for now as Twitter embeds are heavy JS.
-        return html;
-    }
+        async function decryptData(base64Data, password) {
+            const combined = new Uint8Array(atob(base64Data).split("").map(c => c.charCodeAt(0)));
+            const salt = combined.slice(0, 16);
+            const iv = combined.slice(16, 28);
+            const encrypted = combined.slice(28);
 
-    function renderContent(id, content) {
-        const contentDiv = document.getElementById(`content-${id}`);
-        let html = marked.parse(content);
-        html = autoEmbed(html);
-        contentDiv.innerHTML = html;
+            const key = await deriveKey(password, salt);
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv }, key, encrypted
+            );
+            return new TextDecoder().decode(decrypted);
+        }
 
-        contentDiv.querySelectorAll('pre code').forEach((block) => {
-            if (block.className.indexOf('language-') === -1) {
-                // Auto-detect language
-                const result = hljs.highlightAuto(block.innerText);
-                block.innerHTML = result.value;
-            } else {
-                hljs.highlightElement(block);
+        async function handleDecrypt(event, id, encryptedContent) {
+            event.preventDefault();
+            const password = document.getElementById(`decrypt-pw-${id}`).value;
+            try {
+                const decrypted = await decryptData(encryptedContent, password);
+                renderContent(id, decrypted);
+            } catch (e) {
+                alert("Decryption failed. Incorrect password?");
             }
-            hljs.lineNumbersBlock(block);
-        });
+        }
 
-        // KaTeX auto-render
-        renderMathInElement(contentDiv, {
-            delimiters: [
-                {left: '$$', right: '$$', display: true},
-                {left: '$', right: '$', display: false},
-                {left: '\\(', right: '\\)', display: false},
-                {left: '\\[', right: '\\]', display: true}
-            ],
-            throwOnError : false
-        });
-    }
+        function autoEmbed(html) {
+            // Youtube
+            html = html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
+                '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+            // Twitter (X) - Simple link to card if possible, but cards usually need JS. We'll at least make it look distinct or use a simple embed if available.
+            // For simplicity, we'll just handle Youtube for now as Twitter embeds are heavy JS.
+            return html;
+        }
 
-    function copyCurrentUrl() {
+        function renderContent(id, content) {
+            const contentDiv = document.getElementById(`content-${id}`);
+            let html = marked.parse(content);
+            html = autoEmbed(html);
+            contentDiv.innerHTML = html;
+
+            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                if (block.className.indexOf('language-') === -1) {
+                    // Auto-detect language
+                    const result = hljs.highlightAuto(block.innerText);
+                    block.innerHTML = result.value;
+                } else {
+                    hljs.highlightElement(block);
+                }
+                hljs.lineNumbersBlock(block);
+            });
+
+            // KaTeX auto-render
+            renderMathInElement(contentDiv, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false
+            });
+        }
+
+        function copyCurrentUrl() {
             const url = window.location.href;
             navigator.clipboard.writeText(url).then(() => {
                 alert("Link copied to clipboard!");
