@@ -56,7 +56,32 @@ body {
 h1,
 .title-text {
   font-size: 24px;
-  margin-bottom: 15px;
+  margin-bottom: 0;
+}
+
+.header-main {
+    display: flex;
+    align-items: baseline;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.tagline {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+    .header-main {
+        flex-direction: column;
+        gap: 5px;
+    }
+    .tagline {
+        font-size: 13px;
+    }
 }
 
 hr {
