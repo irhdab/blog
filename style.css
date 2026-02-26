@@ -226,6 +226,23 @@ hr {
     max-width: 100%;
 }
 
+.list-view-content {
+    max-height: 250px;
+    overflow: hidden;
+    position: relative;
+}
+
+.list-view-content::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--bg-color));
+    pointer-events: none;
+}
+
 .content p {
     margin-bottom: 1em;
 }

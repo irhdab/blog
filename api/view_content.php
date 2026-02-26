@@ -1,7 +1,9 @@
 <?php
 try {
     require_once 'db.php';
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
     $raw = isset($_GET['raw']);
+    $json = isset($_GET['json']);
 
     if ($id_raw = $_GET['id'] ?? null) {
         // Individual post: Search by UID ONLY for security (prevent sequential ID guessing)
@@ -108,9 +110,23 @@ try {
                 }
             }
 
+            // JSON Metadata Support (for Edit/Clone)
+            if ($json) {
+                if ($passwordCorrect) {
+                    header('Content-Type: application/json');
+                    echo json_encode($row);
+                    exit;
+                } else {
+                    http_response_code(401);
+                    echo json_encode(["message" => "Unauthorized"]);
+                    exit;
+                }
+            }
+
             $result = [$row]; // Emulate iterable for simple logic in phtml
         } else {
             $result = [];
+            $isSingle = true;
         }
     } else {
         // List view: Must not be expired AND must be public
@@ -141,9 +157,15 @@ try {
                 $hasNext = true;
                 break;
             }
-            // Hide content in list if password protected or burn-on-read
-            if (!empty($r['password_hash']) || !empty($r['burn_on_read'])) {
-                $r['content'] = !empty($r['burn_on_read']) ? "[Burn on Read]" : "[Password Protected]";
+            // Hide content in list if password protected, burn-on-read, or E2EE
+            if (!empty($r['password_hash']) || !empty($r['burn_on_read']) || !empty($r['is_encrypted'])) {
+                if (!empty($r['burn_on_read'])) {
+                    $r['content'] = "[Burn on Read]";
+                } else if (!empty($r['is_encrypted'])) {
+                    $r['content'] = "[Encrypted (E2EE)]";
+                } else {
+                    $r['content'] = "[Password Protected]";
+                }
             }
             $result[] = $r;
         }

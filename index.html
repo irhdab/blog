@@ -141,28 +141,32 @@
         const targetUid = editUid || cloneUid;
 
         if (targetUid) {
-            fetch(`/api/view_content.php?id=${targetUid}&raw=1`)
+            fetch(`/api/view_content.php?id=${targetUid}&json=1`)
                 .then(async res => {
                     if (res.status === 401) {
                         const pw = prompt("This post is password protected. Enter password to edit/clone:");
                         if (pw) {
-                            // Try again with password
-                            // We don't have a direct 'raw' with password POST API easily, 
-                            // but we can try to fetch the detail page and extract or just alert.
-                            // For now, let's redirect them to the view page to unlock first, 
-                            // OR just say it's not supported via direct URL yet.
                             alert("Please view and unlock the post first, then click Edit/Clone from there.");
                             window.location.href = `/v/${targetUid}`;
                         }
                         throw new Error("Unauthorized");
                     }
                     if (!res.ok) throw new Error("Failed to fetch post");
-                    return res.text();
+                    return res.json();
                 })
-                .then(content => {
-                    if (!content) return;
-                    document.getElementById('editor').value = content;
-                    updateStats(content);
+                .then(data => {
+                    if (!data || !data.content) return;
+                    document.getElementById('editor').value = data.content;
+                    updateStats(data.content);
+                    
+                    // Restore metadata
+                    document.getElementById('title').value = data.title || "";
+                    if (data.exposure) document.getElementById('exposure').value = data.exposure;
+                    if (data.view_limit) document.getElementById('view_limit').value = data.view_limit;
+                    document.getElementById('is_encrypted').checked = !!data.is_encrypted;
+                    if (data.burn_on_read) {
+                        document.getElementById('expiration').value = 'burn';
+                    }
                     
                     if (editUid) {
                         window.isEditMode = true;
@@ -227,7 +231,7 @@
     function autoEmbed(html) {
         // Youtube
         return html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
-            '<div class="embed-container"><iframe width="100%" height="315" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+            '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
     }
 
     function updatePreview() {
