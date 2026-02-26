@@ -107,7 +107,14 @@
 </div>
 
 <script>
-    window.csrfToken = "<?php session_start(); echo $_SESSION['csrf_token']; ?>";
+    // Fetch CSRF token on load
+    fetch('/api/get_token.php')
+        .then(res => res.json())
+        .then(data => {
+            window.csrfToken = data.csrf_token;
+        })
+        .catch(err => console.error("Failed to fetch CSRF token:", err));
+
     const MAX_PASTE_SIZE = 1024 * 1024; // 1MB
 
     // Load draft on startup
