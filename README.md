@@ -1,6 +1,6 @@
 # KitePad
 
-📝 A minimalist blogging platform inspired by [Telegra.ph](https://telegra.ph/) and [Pastebin](https://pastebin.com/), designed for quick content creation and sharing.
+A minimalist blogging platform designed for quick content creation and sharing.
 
 ## Features
 
