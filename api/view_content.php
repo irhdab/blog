@@ -2,14 +2,16 @@
 try {
     require_once 'db.php';
 
-    $id = isset($_GET['id']) ? (int) $_GET['id'] : null;
-    $raw = isset($_GET['raw']) && $_GET['raw'] == '1';
+    if ($id_raw = $_GET['id'] ?? null) {
+        // Individual post: Search by UID or ID (for backward compatibility)
+        $isNumeric = is_numeric($id_raw);
+        $condition = $isNumeric ? "id = ?" : "uid = ?";
 
-    if ($id) {
-        // Individual post: Must not be expired
-        $sql = "SELECT id, content, created_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted FROM writings WHERE id = ? AND (expires_at IS NULL OR expires_at > NOW())";
+        $sql = "SELECT id, uid, content, created_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted 
+                FROM writings 
+                WHERE $condition AND (expires_at IS NULL OR expires_at > NOW())";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$id]);
+        $stmt->execute([$id_raw]);
         $row = $stmt->fetch();
 
         if ($row) {
@@ -21,7 +23,7 @@ try {
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
                 if ($hasPassword && isset($_POST['password']) && password_verify($_POST['password'], $row['password_hash'])) {
                     $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
-                    $stmt->execute([$id]);
+                    $stmt->execute([$row['id']]);
                     header("Location: /view");
                     exit;
                 } else if (!$hasPassword) {
@@ -53,7 +55,7 @@ try {
             // Increment view count if accessible
             if ($passwordCorrect) {
                 $stmt = $pdo->prepare("UPDATE writings SET view_count = view_count + 1 WHERE id = ?");
-                $stmt->execute([$id]);
+                $stmt->execute([$row['id']]);
                 $row['view_count']++; // Update local row for current view
 
                 // Check view limit or burn_on_read
@@ -68,7 +70,7 @@ try {
 
                 if ($shouldDelete) {
                     $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
-                    $stmt->execute([$id]);
+                    $stmt->execute([$row['id']]);
                 }
             }
 
@@ -90,7 +92,7 @@ try {
         $offset = ($page - 1) * $limit;
 
         // Fetch limit + 1 to check if there is a next page
-        $sql = "SELECT id, content, created_at, password_hash, burn_on_read, view_count, is_encrypted 
+        $sql = "SELECT id, uid, content, created_at, password_hash, burn_on_read, view_count, is_encrypted 
                 FROM writings 
                 WHERE (expires_at IS NULL OR expires_at > NOW()) 
                 AND exposure = 'public' 
@@ -122,7 +124,8 @@ try {
         $currentPage = $page;
     }
 } catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
+    error_log("Database error: " . $e->getMessage());
+    die("A database error occurred. Please try again later.");
 }
 
 

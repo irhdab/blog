@@ -74,6 +74,16 @@ try {
     if (!$stmt->fetch()) {
         $pdo->exec("ALTER TABLE writings ADD COLUMN is_encrypted BOOLEAN DEFAULT FALSE");
     }
+
+    // Check if uid column exists (UUID for security)
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='uid'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN uid VARCHAR(36) UNIQUE NULL");
+        $pdo->exec("CREATE INDEX idx_writings_uid ON writings(uid)");
+        // Populate existing rows
+        $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
+    }
 } catch (Exception $e) {
     // Silently handle migration errors in production or log them
     error_log("Migration error: " . $e->getMessage());

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Copy and Paste</title>
+    <title>KitePad</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -17,7 +17,7 @@
         <a href="/view" class="nav-link">View Posts</a>
         <a href="/contact.html" class="nav-link">Contact</a>
     </div>
-    <h1 class="title-text">Copy and Paste</h1>
+    <h1 class="title-text">KitePad</h1>
     <hr>
     
     <div class="options-container">
@@ -84,6 +84,8 @@
 </div>
 
 <script>
+    const MAX_PASTE_SIZE = 1024 * 1024; // 1MB
+
     // Load draft on startup
     window.addEventListener('DOMContentLoaded', () => {
         const draft = localStorage.getItem('paste_draft');
@@ -103,8 +105,19 @@
     });
 
     function updateStats(content) {
-        document.getElementById('char-count').textContent = content.length;
-        const words = content.trim().split(/\s+/).length;
+        const count = content.length;
+        const charCountEl = document.getElementById('char-count');
+        charCountEl.textContent = count.toLocaleString();
+        
+        if (count > MAX_PASTE_SIZE) {
+            charCountEl.style.color = "#ff4d4d";
+            charCountEl.style.fontWeight = "bold";
+        } else {
+            charCountEl.style.color = "";
+            charCountEl.style.fontWeight = "";
+        }
+
+        const words = content.trim().split(/\s+/).length || 0;
         const readingTime = Math.ceil(words / 200);
         document.getElementById('reading-time').textContent = `Est. Reading: ${readingTime} min`;
     }
@@ -179,6 +192,11 @@
             return;
         }
 
+        if (content.length > MAX_PASTE_SIZE) {
+            alert("The content is too large. The maximum size is 1MB (" + MAX_PASTE_SIZE.toLocaleString() + " characters). Current size: " + content.length.toLocaleString() + " characters.");
+            return;
+        }
+
         const expiration = document.getElementById('expiration').value;
         const exposure = document.getElementById('exposure').value;
         const password = document.getElementById('password').value;
@@ -220,10 +238,15 @@
 
         if (response.ok) {
             const data = await response.json();
-            const shareUrl = window.location.origin + '/v/' + data.id;
+            const shareUrl = window.location.origin + '/v/' + data.id; // data.id is now a UUID
             
             pasteLinkSpan.textContent = shareUrl;
             resultContainer.style.display = 'block';
+            
+            // Redirect to the new paste after a short delay to let the user see the success message
+            setTimeout(() => {
+                window.location.href = shareUrl;
+            }, 800); 
             
             contentArea.value = "";
             localStorage.removeItem('paste_draft'); // Clear draft on success
@@ -257,7 +280,7 @@
 <footer class="site-footer">
     <div class="container">
         <hr>
-        <p>&copy; 2026 Copy and Paste. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">Privacy Policy</a></p>
+        <p>&copy; 2026 KitePad. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">Privacy Policy</a></p>
     </div>
 </footer>
 </body>
