@@ -2,6 +2,8 @@
 
 A minimalist, privacy-focused blogging/pasting platform designed for quick content creation and secure sharing.
 
+(use it here)[https://blog-one-dun-49.vercel.app/]
+
 ## Features
 
 - **Privacy First**:
