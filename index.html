@@ -24,6 +24,12 @@
     </div>
     <hr>
     
+    
+    <div class="option-group" style="margin-bottom: 20px;">
+        <label for="title">Title (Optional)</label>
+        <input type="text" id="title" class="style-input" placeholder="Enter title (e.g. My Notes)" style="width: 100%;">
+    </div>
+
     <div class="options-container">
         <div class="option-group">
             <label for="expiration">Paste Expiration:</label>
@@ -107,6 +113,36 @@
                 publishContent();
             }
         });
+
+        // Handle Edit/Clone Mode
+        const params = new URLSearchParams(window.location.search);
+        const editUid = params.get('edit');
+        const cloneUid = params.get('clone');
+        const targetUid = editUid || cloneUid;
+
+        if (targetUid) {
+            fetch(`/api/view_content.php?id=${targetUid}&raw=1`)
+                .then(res => {
+                    if (!res.ok) throw new Error("Failed to fetch post");
+                    return res.text();
+                })
+                .then(content => {
+                    document.getElementById('editor').value = content;
+                    updateStats(content);
+                    
+                    if (editUid) {
+                        window.isEditMode = true;
+                        window.editUid = editUid;
+                        document.querySelector('.publish-button').textContent = "Update Post";
+                        document.querySelector('.title-text').textContent = "Edit Paste";
+                        
+                        // We might want to fetch full metadata (title, etc) if it's an edit
+                        // But since standard view is phtml, we'd need another API endpoint or use raw=1 which only returns content.
+                        // Let's assume content is the most important. 
+                    }
+                })
+                .catch(err => console.error("Error loading post:", err));
+        }
     });
 
     function updateStats(content) {
@@ -207,6 +243,7 @@
         const password = document.getElementById('password').value;
         const viewLimit = document.getElementById('view_limit').value;
         const isEncrypted = document.getElementById('is_encrypted').checked;
+        const title = document.getElementById('title').value;
 
         if (isEncrypted && !password) {
             alert("Encryption requires a password.");
@@ -230,11 +267,13 @@
             },
             body: JSON.stringify({ 
                 content: content,
+                title: title,
                 expiration: expiration,
                 exposure: exposure,
                 password: isEncrypted ? "" : password, // If E2EE, don't store plain password
                 view_limit: viewLimit,
-                is_encrypted: isEncrypted
+                is_encrypted: isEncrypted,
+                uid: window.isEditMode ? window.editUid : null
             })
         });
 

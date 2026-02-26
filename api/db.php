@@ -83,6 +83,21 @@ try {
         $pdo->exec("CREATE INDEX idx_writings_uid ON writings(uid)");
         // Populate existing rows
         $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
+    } else {
+        // Optional: Ensure all existing rows have UIDs if the column was added manually
+        // But to 'prevent unnecessary execution', we'll only run if a quick check finds any NULLs.
+        // For a small DB, this is fast.
+        $stmt = $pdo->query("SELECT 1 FROM writings WHERE uid IS NULL LIMIT 1");
+        if ($stmt->fetch()) {
+            $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
+        }
+    }
+
+    // Check if title column exists
+    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='title'");
+    $stmt->execute();
+    if (!$stmt->fetch()) {
+        $pdo->exec("ALTER TABLE writings ADD COLUMN title TEXT NULL");
     }
 } catch (Exception $e) {
     // Silently handle migration errors in production or log them

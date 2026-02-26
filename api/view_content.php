@@ -1,13 +1,14 @@
 <?php
 try {
     require_once 'db.php';
+    $raw = isset($_GET['raw']);
 
     if ($id_raw = $_GET['id'] ?? null) {
         // Individual post: Search by UID or ID (for backward compatibility)
         $isNumeric = is_numeric($id_raw);
         $condition = $isNumeric ? "id = ?" : "uid = ?";
 
-        $sql = "SELECT id, uid, content, created_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted 
+        $sql = "SELECT id, uid, content, title, created_at, expires_at, password_hash, burn_on_read, view_count, view_limit, is_encrypted 
                 FROM writings 
                 WHERE $condition AND (expires_at IS NULL OR expires_at > NOW())";
         $stmt = $pdo->prepare($sql);
@@ -92,7 +93,7 @@ try {
         $offset = ($page - 1) * $limit;
 
         // Fetch limit + 1 to check if there is a next page
-        $sql = "SELECT id, uid, content, created_at, password_hash, burn_on_read, view_count, is_encrypted 
+        $sql = "SELECT id, uid, content, title, created_at, expires_at, password_hash, burn_on_read, view_count, is_encrypted 
                 FROM writings 
                 WHERE (expires_at IS NULL OR expires_at > NOW()) 
                 AND exposure = 'public' 

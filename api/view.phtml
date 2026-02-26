@@ -55,6 +55,20 @@
             margin-top: 5px;
         }
 
+        .expiration-countdown {
+            font-size: 12px;
+            color: #ffaa00;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .post-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
         .katex {
             font-size: 1.1em;
         }
@@ -96,6 +110,9 @@
         <?php elseif (!empty($result)): ?>
             <?php foreach ($result as $row): ?>
                 <div class="entry">
+                    <?php if (!empty($row['title'])): ?>
+                        <div class="post-title"><?php echo htmlspecialchars($row['title']); ?></div>
+                    <?php endif; ?>
                     <div class="content" id="content-<?php echo $row['id']; ?>">
                         <?php if (!empty($row['is_encrypted'])): ?>
                             <div id="decrypt-prompt-<?php echo $row['id']; ?>">
@@ -116,6 +133,11 @@
                         <?php if (isset($row['view_limit']) && $row['view_limit'] > 0): ?>
                             / Limit: <?php echo $row['view_limit']; ?>
                         <?php endif; ?>
+                        <?php if (!empty($row['expires_at'])): ?>
+                            <div class="expiration-countdown" data-expires="<?php echo $row['expires_at']; ?>">
+                                Expires in: <span class="countdown-timer">Calculating...</span>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="timestamp">Saved on: <?php echo $row['created_at']; ?></div>
                     <div class="actions">
@@ -128,6 +150,8 @@
                                 <div id="qrcode"></div>
                                 <p style="color: #333; font-size: 11px; margin-top: 8px; text-align: center; margin-bottom: 0;">Scan to share</p>
                             </div>
+                            <button class="copy-btn" onclick="location.href='/?edit=<?php echo $row['uid'] ?: $row['id']; ?>'">Edit</button>
+                            <button class="copy-btn" onclick="location.href='/?clone=<?php echo $row['uid'] ?: $row['id']; ?>'">Clone</button>
                             <?php if ($hasPassword): ?>
                                 <hr style="margin: 10px 0; border-top: 1px solid #222;">
                                 <form method="POST" style="display: inline-block;">
@@ -143,6 +167,7 @@
                                 style="text-decoration: none; display: inline-block;">View</a>
                             <button class="copy-btn" onclick="copyShareLink('<?php echo $row['uid'] ?: $row['id']; ?>')">Copy
                                 Link</button>
+                            <button class="copy-btn" onclick="location.href='/?clone=<?php echo $row['uid'] ?: $row['id']; ?>'">Clone</button>
                             <button class="copy-btn" onclick="copyText(<?php echo htmlspecialchars(json_encode($row['content'])); ?>)">Copy
                                 Raw</button>
                         <?php endif; ?>
@@ -312,6 +337,37 @@
                 wrapper.style.display = 'none';
             }
         }
+
+        // Countdown Timer Logic
+        function updateCountdowns() {
+            const elements = document.querySelectorAll('.expiration-countdown');
+            elements.forEach(el => {
+                const expiresAt = new Date(el.dataset.expires).getTime();
+                const now = new Date().getTime();
+                const diff = expiresAt - now;
+
+                if (diff <= 0) {
+                    el.innerHTML = "Expired";
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                let parts = [];
+                if (d > 0) parts.push(d + "d");
+                if (h > 0) parts.push(h + "h");
+                if (m > 0) parts.push(m + "m");
+                parts.push(s + "s");
+
+                el.querySelector('.countdown-timer').textContent = parts.join(" ");
+            });
+        }
+
+        setInterval(updateCountdowns, 1000);
+        updateCountdowns();
     </script>
 </body>
 
