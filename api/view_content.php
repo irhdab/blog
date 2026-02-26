@@ -13,13 +13,16 @@ try {
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$id_raw]);
         $row = $stmt->fetch();
-
         if ($row) {
             $isSingle = true;
             $hasPassword = !empty($row['password_hash']);
             $passwordCorrect = false;
 
-            // Handle Deletion
+            // Handle session or cookie-based unlocking (robust for serverless)
+            if (isset($_SESSION['unlocked_' . $row['id']]) || isset($_COOKIE['unlocked_' . $row['uid']])) {
+                $passwordCorrect = true;
+            }
+
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // CSRF check for all POST actions in view
                 $clientToken = $_POST['csrf_token'] ?? '';
@@ -34,10 +37,11 @@ try {
                         if ($hasPassword && isset($_POST['password']) && password_verify($_POST['password'], $row['password_hash'])) {
                             $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
                             $stmt->execute([$row['id']]);
+                            setcookie('unlocked_' . $row['uid'], '', time() - 3600, '/');
                             header("Location: /view");
                             exit;
                         } else if (!$hasPassword) {
-                            // Non-password protected deletion? (Not yet allowed by UI)
+                            // Non-password protected deletion
                         } else {
                             $passwordError = "Incorrect password for deletion.";
                         }
@@ -47,12 +51,20 @@ try {
                     if (isset($_POST['password']) && (!isset($_POST['action']) || $_POST['action'] !== 'delete')) {
                         if (password_verify($_POST['password'], $row['password_hash'])) {
                             $passwordCorrect = true;
+                            $_SESSION['unlocked_' . $row['id']] = true;
+                            // Set a short-lived cookie for serverless persistence
+                            setcookie('unlocked_' . $row['uid'], '1', [
+                                'expires' => time() + 3600, // 1 hour
+                                'path' => '/',
+                                'httponly' => true,
+                                'samesite' => 'Lax'
+                            ]);
                         } else {
                             $passwordError = "Incorrect password.";
                         }
                     }
                 }
-            } else {
+            } else if (!$hasPassword) {
                 $passwordCorrect = true; // No password required
             }
 

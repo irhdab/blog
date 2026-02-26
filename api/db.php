@@ -12,7 +12,7 @@ if (!$host || !$db || !$user || !$pass) {
 }
 
 // Set security headers
-header("Content-Security-Policy: default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src https://www.youtube.com;");
+header("Content-Security-Policy: default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-src https://www.youtube.com;");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
 header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: SAMEORIGIN");
@@ -31,8 +31,17 @@ $pdo = new PDO($dsn, $user, $pass, $options);
 
 // Helper for CSRF/Rate Limiting
 session_start();
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+if (empty($_COOKIE['csrf_token'])) {
+    $token = bin2hex(random_bytes(32));
+    setcookie('csrf_token', $token, [
+        'expires' => time() + 86400, // 24 hours
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+    $_SESSION['csrf_token'] = $token;
+} else {
+    $_SESSION['csrf_token'] = $_COOKIE['csrf_token'];
 }
 
 function check_rate_limit($pdo, $key, $limit, $window_seconds)
