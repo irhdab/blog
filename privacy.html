@@ -117,12 +117,7 @@
             </div>
         </div>
 
-        <div style="text-align: right; margin-bottom: 20px;">
-            <button onclick="toggleLang('en')" class="copy-btn" id="btn-en" style="padding: 5px 10px; font-size: 12px; opacity: 1;">English</button>
-            <button onclick="toggleLang('ko')" class="copy-btn" id="btn-ko" style="padding: 5px 10px; font-size: 12px; opacity: 0.5;">한국어</button>
-        </div>
 
-        <div id="policy-en">
 
         <div class="policy-section">
             <h2>1. Core Principles (GDPR Art. 5)</h2>
@@ -199,120 +194,20 @@
             <p>In the event of a personal data breach that is likely to result in a high risk to your rights and freedoms, we will notify the competent supervisory authority and the affected data subjects within <strong>72 hours</strong> of becoming aware of the breach, where feasible.</p>
         </div>
 
-        <div id="policy-ko" style="display: none;">
-            <div class="policy-section">
-                <h2>1. 기본 원칙 (GDPR 제5조)</h2>
-                <p>본 서비스는 다음 7가지 핵심 원칙에 따라 데이터를 처리합니다:</p>
-                <ul>
-                    <li><strong>적법성, 공정성, 투명성</strong>: 데이터는 적법하고 투명하게 처리됩니다.</li>
-                    <li><strong>목적 제한</strong>: 지정된 명시적이고 정당한 목적을 위해서만 수집됩니다.</li>
-                    <li><strong>데이터 최소화</strong>: 서비스 제공에 엄격히 필요한 데이터만 수집합니다.</li>
-                    <li><strong>정확성</strong>: 데이터를 정확하고 최신 상태로 유지합니다.</li>
-                    <li><strong>보관 제한</strong>: 목적이 달성되면 데이터를 삭제합니다.</li>
-                    <li><strong>무결성 및 기밀성</strong>: 강력한 보안 조치를 사용하여 데이터를 보호합니다.</li>
-                    <li><strong>책임성</strong>: 이러한 원칙의 준수를 입증하고 책임을 집니다.</li>
-                </ul>
-            </div>
-
-            <div class="policy-section">
-                <h2>2. 데이터 컨트롤러 및 보호 담당자</h2>
-                <p>데이터 컨트롤러는 <strong>hanjinkim</strong>입니다.</p>
-                <p><strong>개인정보 보호 담당자 (DPO):</strong></p>
-                <p class="privacy-email-placeholder-ko">Email: </p>
-            </div>
-
-            <div class="policy-section">
-                <h2>3. 수집하는 정보</h2>
-                <table class="policy-table">
-                    <thead>
-                        <tr>
-                            <th>카테고리</th>
-                            <th>수집 항목</th>
-                            <th>법적 근거 (GDPR 제6조)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>사용자 콘텐츠</td>
-                            <td>게시물 본문</td>
-                            <td>계약의 이행</td>
-                        </tr>
-                        <tr>
-                            <td>보안</td>
-                            <td>해시된 비밀번호 (BCRYPT)</td>
-                            <td>정당한 이익 (보안 강화)</td>
-                        </tr>
-                        <tr>
-                            <td>기술적 정보</td>
-                            <td>IP 주소, 접속 로그</td>
-                            <td>정당한 이익 (보안 강화)</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="policy-section">
-                <h2>4. 정보주체의 권리 (GDPR)</h2>
-                <p>GDPR에 따라 귀하는 다음과 같은 권리를 가집니다:</p>
-                <ul>
-                    <li><strong>열람권</strong>: 자신의 데이터 사본을 요청할 수 있습니다.</li>
-                    <li><strong>정정권</strong>: 부정확한 데이터의 수정을 요청할 수 있습니다.</li>
-                    <li><strong>삭제권 (잊혀질 권리)</strong>: 데이터 삭제를 요청할 수 있습니다.</li>
-                    <li><strong>처리 제한권</strong>: 데이터 사용 제한을 요청할 수 있습니다.</li>
-                    <li><strong>데이터 이동성권</strong>: 데이터를 구조화된 형식으로 제공받을 수 있습니다.</li>
-                    <li><strong>반대권</strong>: 정당한 이익에 근거한 처리에 반대할 수 있습니다.</li>
-                </ul>
-                <p>권리 행사를 원하시면 담당자에게 이메일로 연락해 주십시오. 익명 게시물의 경우 소유권 확인을 위해 해당 게시물의 비밀번호가 필요할 수 있습니다.</p>
-            </div>
-
-            <div class="policy-section">
-                <h2>5. 데이터 국외 이전</h2>
-                <p>귀하의 데이터는 <strong>대한민국</strong>(Vercel/PostgreSQL 서버 위치)에 저장 및 처리됩니다. 대한민국은 유럽위원회(EC)로부터 적정성 결정(Adequacy Decision)을 받았으며, 이는 EU 수준의 데이터 보호 수준을 보장함을 의미합니다 (GDPR 제45조).</p>
-            </div>
-
-            <div class="policy-section">
-                <h2>6. 데이터 유출 통지</h2>
-                <p>귀하의 권리와 자유에 높은 위험을 초래할 수 있는 개인정보 유출 사고 발생 시, 인지 후 <strong>72시간 이내</strong>에 감독 기관 및 정보주체에게 통지합니다.</p>
-            </div>
-        </div>
-
         <script>
-            function toggleLang(lang) {
-                const en = document.getElementById('policy-en');
-                const ko = document.getElementById('policy-ko');
-                const btnEn = document.getElementById('btn-en');
-                const btnKo = document.getElementById('btn-ko');
-                
-                if (lang === 'ko') {
-                    en.style.display = 'none';
-                    ko.style.display = 'block';
-                    btnKo.style.opacity = '1';
-                    btnEn.style.opacity = '0.5';
-                } else {
-                    en.style.display = 'block';
-                    ko.style.display = 'none';
-                    btnEn.style.opacity = '1';
-                    btnKo.style.opacity = '0.5';
-                }
-            }
-
             (function() {
                 const user = "hanjinkim";
                 const domain = "protonmail.com";
                 const email = user + '@' + domain;
                 
-                const placeholders = [
-                    document.getElementById('privacy-email-placeholder'),
-                    document.querySelector('.privacy-email-placeholder-ko')
-                ];
-                
-                placeholders.forEach(placeholder => {
+                const placeholder = document.getElementById('privacy-email-placeholder');
+                if (placeholder) {
                     const link = document.createElement('a');
                     link.href = 'mailto:' + email;
                     link.style.color = 'var(--accent-color)';
                     link.textContent = email;
                     placeholder.appendChild(link);
-                });
+                }
             })();
         </script>
     </div>
