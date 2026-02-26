@@ -40,7 +40,18 @@ body {
 .container {
   max-width: 800px;
   margin: 0 auto;
+  padding: 0 15px; /* Added side padding for container */
 }
+
+@media (max-width: 600px) {
+  body {
+    padding: 10px; /* Reduced body padding on mobile */
+  }
+  .container {
+    padding: 0 10px; /* Further reduced container padding on smaller screens */
+  }
+}
+
 
 h1,
 .title-text {
@@ -70,6 +81,16 @@ hr {
     outline: none;
     box-sizing: border-box;
 }
+
+
+@media (max-width: 600px) {
+  .editor {
+    min-height: 300px; /* Slightly shorter editor on mobile */
+    padding: 15px;
+    font-size: 15px;
+  }
+}
+
 
 .editor:focus {
     border-color: var(--accent);
@@ -122,6 +143,15 @@ hr {
     margin-bottom: 25px;
     overflow-y: auto;
 }
+
+
+@media (max-width: 600px) {
+  .preview-pane {
+    min-height: 300px; 
+    padding: 15px;
+  }
+}
+
 
 .hidden {
     display: none !important;
@@ -242,6 +272,16 @@ hr {
     margin-bottom: 15px;
     flex-wrap: wrap;
 }
+
+@media (max-width: 600px) {
+  .options-container {
+    gap: 12px; /* Tighter gap on mobile */
+  }
+  .option-group {
+    flex: 1 1 140px; /* Allow items to wrap and take full width if needed */
+  }
+}
+
 
 .option-group {
     display: flex;

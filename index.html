@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -79,6 +80,7 @@
             <span id="paste-link"></span>
             <button class="copy-btn" onclick="copyResultLink()">Copy</button>
         </div>
+        <div id="qrcode-container" style="margin-top: 20px; display: flex; justify-content: center; background: white; padding: 10px; border-radius: 8px; width: fit-content; margin-left: auto; margin-right: auto;"></div>
         <p style="font-size: 11px; margin-top: 10px;">Pro tip: You can access the raw text by adding <code>&raw=1</code> to the URL.</p>
     </div>
 </div>
@@ -241,6 +243,19 @@
             const shareUrl = window.location.origin + '/v/' + data.id; // data.id is now a UUID
             
             pasteLinkSpan.textContent = shareUrl;
+            
+            // Generate QR Code
+            const qrcodeContainer = document.getElementById('qrcode-container');
+            qrcodeContainer.innerHTML = '';
+            new QRCode(qrcodeContainer, {
+                text: shareUrl,
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
             resultContainer.style.display = 'block';
             
             // Redirect to the new paste after a short delay to let the user see the success message
