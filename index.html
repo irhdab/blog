@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"></link>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -26,14 +26,16 @@
 <div class="container">
     <div class="nav-links">
         <a href="/view" class="nav-link">View Posts</a>
-        <a href="/contact.html" class="nav-link">Contact</a>
+        <a href="https://github.com/irhdab/kitepad/tree/main" class="nav-link" target="_blank">GitHub</a>
     </div>
     <div class="header-main">
         <h1 class="title-text">KitePad</h1>
         <span class="tagline">Zero-knowledge pastebin. Configure expiry, view limit and end‑to‑end encryption in one place.</span>
     </div>
     <hr>
-    
+    <div id="secret-banner" class="secret-banner hidden">
+        <span>⚠️ Looks like this might contain credentials. Make sure you trust the recipient.</span>
+    </div>
     
     <div class="option-group" style="margin-bottom: 20px;">
         <label for="title">Title (Optional)</label>
@@ -105,6 +107,7 @@
 </div>
 
 <script>
+    window.csrfToken = "<?php session_start(); echo $_SESSION['csrf_token']; ?>";
     const MAX_PASTE_SIZE = 1024 * 1024; // 1MB
 
     // Load draft on startup
@@ -187,9 +190,27 @@
         document.getElementById('reading-time').textContent = `Est. Reading: ${readingTime} min`;
     }
 
+    function scanForSecrets(text) {
+        const patterns = [
+            /sk-[a-zA-Z0-9]{48}/,       // OpenAI
+            /AKIA[0-9A-Z]{16}/,         // AWS Access Key
+            /-----BEGIN PRIVATE KEY-----/ // Generic Private Key
+        ];
+        return patterns.some(pattern => pattern.test(text));
+    }
+
     function onEditorInput() {
         const content = document.getElementById('editor').value;
         updateStats(content);
+        
+        // Secret Scanner
+        const banner = document.getElementById('secret-banner');
+        if (scanForSecrets(content)) {
+            banner.classList.remove('hidden');
+        } else {
+            banner.classList.add('hidden');
+        }
+
         localStorage.setItem('paste_draft', content); // Save draft
         if (!document.getElementById('preview-pane').classList.contains('hidden')) {
             updatePreview();
@@ -320,7 +341,8 @@
                 password: isEncrypted ? "" : password, // If E2EE, don't store plain password
                 view_limit: viewLimit,
                 is_encrypted: isEncrypted,
-                uid: window.isEditMode ? window.editUid : null
+                uid: window.isEditMode ? window.editUid : null,
+                csrf_token: window.csrfToken
             })
         });
 
@@ -384,7 +406,7 @@
 <footer class="site-footer">
     <div class="container">
         <hr>
-        <p>&copy; 2026 KitePad. All rights reserved. <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">Privacy Policy</a></p>
+        <p>&copy; 2026 KitePad. All rights reserved. <a href="https://github.com/irhdab/kitepad/tree/main" class="nav-link" target="_blank">GitHub</a> | <a href="/contact.html" class="nav-link">Contact</a> | <a href="/privacy.html" class="nav-link">Privacy Policy</a></p>
     </div>
 </footer>
 </body>

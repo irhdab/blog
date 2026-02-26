@@ -10,6 +10,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    require_once 'db.php';
+
+    // CSRF Protection
+    $clientToken = $data['csrf_token'] ?? '';
+    if (empty($clientToken) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $clientToken)) {
+        http_response_code(403);
+        echo json_encode(["message" => "Invalid CSRF token."]);
+        exit;
+    }
+
+    // Rate Limiting: 5 posts per minute
+    if (!check_rate_limit($pdo, "save_content", 5, 60)) {
+        http_response_code(429);
+        echo json_encode(["message" => "Too many requests. Please wait a minute."]);
+        exit;
+    }
+
     // Basic security check: ensure it's an AJAX/JSON request
     $contentType = $_SERVER["CONTENT_TYPE"] ?? "";
     if (strpos($contentType, 'application/json') === false) {
@@ -31,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!in_array('pgsql', PDO::getAvailableDrivers())) {
             throw new Exception("PHP PDO PostgreSQL driver (pdo_pgsql) is not installed.");
         }
-        require_once 'db.php';
+        // require_once 'db.php'; // Already included above for CSRF check
 
         $title = $data['title'] ?? null;
         $expiration = $data['expiration'] ?? 'never';

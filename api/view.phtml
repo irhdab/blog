@@ -11,10 +11,9 @@
         rel="stylesheet">
     <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"></link>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/highlightjs-line-numbers.js@2.8.0/dist/highlightjs-line-numbers.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
@@ -83,6 +82,142 @@
             border: none;
         }
     </style>
+    <script>
+        // E2EE Decryption
+        async function deriveKey(password, salt) {
+            const encoder = new TextEncoder();
+            const baseKey = await crypto.subtle.importKey(
+                "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
+            );
+            return crypto.subtle.deriveKey(
+                { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+                baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+            );
+        }
+
+        async function decryptData(base64Data, password) {
+            const combined = new Uint8Array(atob(base64Data).split("").map(c => c.charCodeAt(0)));
+            const salt = combined.slice(0, 16);
+            const iv = combined.slice(16, 28);
+            const encrypted = combined.slice(28);
+
+            const key = await deriveKey(password, salt);
+            const decrypted = await crypto.subtle.decrypt(
+                { name: "AES-GCM", iv }, key, encrypted
+            );
+            return new TextDecoder().decode(decrypted);
+        }
+
+        async function handleDecrypt(event, id, encryptedContent) {
+            event.preventDefault();
+            const password = document.getElementById(`decrypt-pw-${id}`).value;
+            try {
+                const decrypted = await decryptData(encryptedContent, password);
+                renderContent(id, decrypted);
+            } catch (e) {
+                alert("Decryption failed. Incorrect password?");
+            }
+        }
+
+        function autoEmbed(html) {
+            // Youtube
+            html = html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
+                '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
+            return html;
+        }
+
+        function scanForSecrets(text) {
+            const patterns = [
+                /sk-[a-zA-Z0-9]{48}/,       // OpenAI
+                /AKIA[0-9A-Z]{16}/,         // AWS Access Key
+                /-----BEGIN PRIVATE KEY-----/ // Generic Private Key
+            ];
+            return patterns.some(pattern => pattern.test(text));
+        }
+
+        function renderContent(id, content) {
+            const contentDiv = document.getElementById(`content-${id}`);
+            if (!contentDiv) return;
+
+            // Secret Scanner (only for single view)
+            const banner = document.getElementById('secret-banner');
+            if (banner && scanForSecrets(content)) {
+                banner.classList.remove('hidden');
+            }
+
+            let html = marked.parse(content);
+            html = autoEmbed(html);
+            contentDiv.innerHTML = DOMPurify.sanitize(html);
+
+            contentDiv.querySelectorAll('pre code').forEach((block) => {
+                if (block.className.indexOf('language-') === -1) {
+                    const result = hljs.highlightAuto(block.innerText);
+                    block.innerHTML = result.value;
+                } else {
+                    hljs.highlightElement(block);
+                }
+                hljs.lineNumbersBlock(block);
+            });
+
+            renderMathInElement(contentDiv, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ],
+                throwOnError: false
+            });
+        }
+
+        function copyCurrentUrl() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+
+        function copyContent(elementId) {
+            const element = document.getElementById(elementId);
+            navigator.clipboard.writeText(element.innerText).then(() => {
+                alert("Content copied to clipboard!");
+            });
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied to clipboard!");
+            });
+        }
+
+        function copyShareLink(id) {
+            const shareUrl = window.location.origin + '/v/' + id;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("Link copied to clipboard!");
+            });
+        }
+
+        let qrcodeGenerated = false;
+        function toggleQRCode() {
+            const wrapper = document.getElementById('qrcode-wrapper');
+            if (wrapper.style.display === 'none') {
+                wrapper.style.display = 'block';
+                if (!qrcodeGenerated) {
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: window.location.href,
+                        width: 150,
+                        height: 150,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    qrcodeGenerated = true;
+                }
+            } else {
+                wrapper.style.display = 'none';
+            }
+        }
+    </script>
 </head>
 
 <body>
@@ -90,11 +225,16 @@
         <div class="nav-links">
             <a href="/" class="nav-link">Create New Paste</a>
             <a href="/view" class="nav-link">View Posts</a>
-            <a href="/contact.html" class="nav-link">Contact</a>
+            <a href="https://github.com/irhdab/kitepad/tree/main" class="nav-link" target="_blank">GitHub</a>
         </div>
         <div class="header-main">
             <h1 class="title-text"><?php echo $isSingle ? "Paste Detail" : "Public Pastes"; ?></h1>
-            <span class="tagline">Zero-knowledge pastebin. Configure expiry, view limit and end‑to‑end encryption in one place.</span>
+            <span class="tagline">Zero-knowledge pastebin. Configure expiry, view limit and end‑to‑end encryption in one
+                place.</span>
+        </div>
+
+        <div id="secret-banner" class="secret-banner hidden">
+            <span>⚠️ Looks like this might contain credentials. Make sure you trust the recipient.</span>
         </div>
 
         <?php if (isset($burnMessage)): ?>
@@ -108,6 +248,7 @@
                     <p style="color: #ff5555;"><?php echo $passwordError; ?></p>
                 <?php endif; ?>
                 <form method="POST">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                     <input type="password" name="password" class="style-input" placeholder="Enter password" required>
                     <button type="submit" class="copy-btn">Unlock</button>
                 </form>
@@ -151,15 +292,20 @@
                             <button class="copy-btn" onclick="toggleQRCode()">QR Code</button>
                             <button class="copy-btn" onclick="copyContent('content-<?php echo $row['id']; ?>')">Copy
                                 Content</button>
-                            <div id="qrcode-wrapper" style="display: none; margin-top: 15px; padding: 15px; background: white; border-radius: 8px; width: fit-content;">
+                            <div id="qrcode-wrapper"
+                                style="display: none; margin-top: 15px; padding: 15px; background: white; border-radius: 8px; width: fit-content;">
                                 <div id="qrcode"></div>
-                                <p style="color: #333; font-size: 11px; margin-top: 8px; text-align: center; margin-bottom: 0;">Scan to share</p>
+                                <p style="color: #333; font-size: 11px; margin-top: 8px; text-align: center; margin-bottom: 0;">Scan
+                                    to share</p>
                             </div>
-                            <button class="copy-btn" onclick="location.href='/?edit=<?php echo $row['uid'] ?: $row['id']; ?>'">Edit</button>
-                            <button class="copy-btn" onclick="location.href='/?clone=<?php echo $row['uid'] ?: $row['id']; ?>'">Clone</button>
+                            <button class="copy-btn"
+                                onclick="location.href='/?edit=<?php echo $row['uid'] ?: $row['id']; ?>'">Edit</button>
+                            <button class="copy-btn"
+                                onclick="location.href='/?clone=<?php echo $row['uid'] ?: $row['id']; ?>'">Clone</button>
                             <?php if ($hasPassword): ?>
                                 <hr style="margin: 10px 0; border-top: 1px solid #222;">
                                 <form method="POST" style="display: inline-block;">
+                                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="password" name="password" class="style-input"
                                         style="padding: 2px 5px; font-size: 11px;" placeholder="Password to delete" required>
@@ -172,8 +318,10 @@
                                 style="text-decoration: none; display: inline-block;">View</a>
                             <button class="copy-btn" onclick="copyShareLink('<?php echo $row['uid'] ?: $row['id']; ?>')">Copy
                                 Link</button>
-                            <button class="copy-btn" onclick="location.href='/?clone=<?php echo $row['uid'] ?: $row['id']; ?>'">Clone</button>
-                            <button class="copy-btn" onclick="copyText(<?php echo htmlspecialchars(json_encode($row['content'])); ?>)">Copy
+                            <button class="copy-btn"
+                                onclick="location.href='/?clone=<?php echo $row['uid'] ?: $row['id']; ?>'">Clone</button>
+                            <button class="copy-btn"
+                                onclick="copyText(<?php echo htmlspecialchars(json_encode($row['content'])); ?>)">Copy
                                 Raw</button>
                         <?php endif; ?>
                     </div>
@@ -214,135 +362,14 @@
     <footer class="site-footer">
         <div class="container">
             <hr>
-            <p>&copy; 2026 KitePad. All rights reserved. <a href="/privacy.html" class="nav-link">Privacy
+            <p>&copy; 2026 KitePad. All rights reserved. <a href="https://github.com/irhdab/kitepad/tree/main"
+                    class="nav-link" target="_blank">GitHub</a> | <a href="/contact.html" class="nav-link">Contact</a> |
+                <a href="/privacy.html" class="nav-link">Privacy
                     Policy</a>
             </p>
         </div>
     </footer>
     <script>
-        // E2EE Decryption
-        async function deriveKey(password, salt) {
-            const encoder = new TextEncoder();
-            const baseKey = await crypto.subtle.importKey(
-                "raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]
-            );
-            return crypto.subtle.deriveKey(
-                { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
-                baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
-            );
-        }
-
-        async function decryptData(base64Data, password) {
-            const combined = new Uint8Array(atob(base64Data).split("").map(c => c.charCodeAt(0)));
-            const salt = combined.slice(0, 16);
-            const iv = combined.slice(16, 28);
-            const encrypted = combined.slice(28);
-
-            const key = await deriveKey(password, salt);
-            const decrypted = await crypto.subtle.decrypt(
-                { name: "AES-GCM", iv }, key, encrypted
-            );
-            return new TextDecoder().decode(decrypted);
-        }
-
-        async function handleDecrypt(event, id, encryptedContent) {
-            event.preventDefault();
-            const password = document.getElementById(`decrypt-pw-${id}`).value;
-            try {
-                const decrypted = await decryptData(encryptedContent, password);
-                renderContent(id, decrypted);
-            } catch (e) {
-                alert("Decryption failed. Incorrect password?");
-            }
-        }
-
-        function autoEmbed(html) {
-            // Youtube
-            html = html.replace(/https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/g,
-                '<div class="embed-container"><iframe width="100%" height="450" src="https://www.youtube.com/embed/$1" frameborder="0" allowfullscreen></iframe></div>');
-            // Twitter (X) - Simple link to card if possible, but cards usually need JS. We'll at least make it look distinct or use a simple embed if available.
-            // For simplicity, we'll just handle Youtube for now as Twitter embeds are heavy JS.
-            return html;
-        }
-
-        function renderContent(id, content) {
-            const contentDiv = document.getElementById(`content-${id}`);
-            let html = marked.parse(content);
-            html = autoEmbed(html);
-            contentDiv.innerHTML = DOMPurify.sanitize(html);
-
-            contentDiv.querySelectorAll('pre code').forEach((block) => {
-                if (block.className.indexOf('language-') === -1) {
-                    // Auto-detect language
-                    const result = hljs.highlightAuto(block.innerText);
-                    block.innerHTML = result.value;
-                } else {
-                    hljs.highlightElement(block);
-                }
-                hljs.lineNumbersBlock(block);
-            });
-
-            // KaTeX auto-render
-            renderMathInElement(contentDiv, {
-                delimiters: [
-                    { left: '$$', right: '$$', display: true },
-                    { left: '$', right: '$', display: false },
-                    { left: '\\(', right: '\\)', display: false },
-                    { left: '\\[', right: '\\]', display: true }
-                ],
-                throwOnError: false
-            });
-        }
-
-        function copyCurrentUrl() {
-            const url = window.location.href;
-            navigator.clipboard.writeText(url).then(() => {
-                alert("Link copied to clipboard!");
-            });
-        }
-
-        function copyContent(elementId) {
-            const element = document.getElementById(elementId);
-            // Copy innerText to get the rendered text version
-            navigator.clipboard.writeText(element.innerText).then(() => {
-                alert("Content copied to clipboard!");
-            });
-        }
-
-        function copyText(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Copied to clipboard!");
-            });
-        }
-
-        function copyShareLink(id) {
-            const shareUrl = window.location.origin + '/v/' + id;
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                alert("Link copied to clipboard!");
-            });
-        }
-
-        let qrcodeGenerated = false;
-        function toggleQRCode() {
-            const wrapper = document.getElementById('qrcode-wrapper');
-            if (wrapper.style.display === 'none') {
-                wrapper.style.display = 'block';
-                if (!qrcodeGenerated) {
-                    new QRCode(document.getElementById("qrcode"), {
-                        text: window.location.href,
-                        width: 150,
-                        height: 150,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
-                    });
-                    qrcodeGenerated = true;
-                }
-            } else {
-                wrapper.style.display = 'none';
-            }
-        }
-
         // Countdown Timer Logic
         function updateCountdowns() {
             const elements = document.querySelectorAll('.expiration-countdown');

@@ -20,27 +20,36 @@ try {
             $passwordCorrect = false;
 
             // Handle Deletion
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
-                if ($hasPassword && isset($_POST['password']) && password_verify($_POST['password'], $row['password_hash'])) {
-                    $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
-                    $stmt->execute([$row['id']]);
-                    header("Location: /view");
-                    exit;
-                } else if (!$hasPassword) {
-                    // For non-password protected, maybe just delete? Or require a master key?
-                    // Plan says "Delete with Password", so if no password is set, it might not be deletable this way.
-                    // Let's stick to the plan: if hasPassword, verify.
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                // CSRF check for all POST actions in view
+                $clientToken = $_POST['csrf_token'] ?? '';
+                if (empty($clientToken) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $clientToken)) {
+                    $passwordError = "Invalid session or CSRF token.";
+                } else if (!check_rate_limit($pdo, "password_attempt", 10, 60)) {
+                    // Rate Limit password attempts: 10 per minute
+                    $passwordError = "Too many attempts. Please wait.";
                 } else {
-                    $passwordError = "Incorrect password for deletion.";
-                }
-            }
+                    // Handle Deletion
+                    if (isset($_POST['action']) && $_POST['action'] === 'delete') {
+                        if ($hasPassword && isset($_POST['password']) && password_verify($_POST['password'], $row['password_hash'])) {
+                            $stmt = $pdo->prepare("DELETE FROM writings WHERE id = ?");
+                            $stmt->execute([$row['id']]);
+                            header("Location: /view");
+                            exit;
+                        } else if (!$hasPassword) {
+                            // Non-password protected deletion? (Not yet allowed by UI)
+                        } else {
+                            $passwordError = "Incorrect password for deletion.";
+                        }
+                    }
 
-            if ($hasPassword) {
-                if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password']) && (!isset($_POST['action']) || $_POST['action'] !== 'delete')) {
-                    if (password_verify($_POST['password'], $row['password_hash'])) {
-                        $passwordCorrect = true;
-                    } else {
-                        $passwordError = "Incorrect password.";
+                    // Handle View Unlock
+                    if (isset($_POST['password']) && (!isset($_POST['action']) || $_POST['action'] !== 'delete')) {
+                        if (password_verify($_POST['password'], $row['password_hash'])) {
+                            $passwordCorrect = true;
+                        } else {
+                            $passwordError = "Incorrect password.";
+                        }
                     }
                 }
             } else {

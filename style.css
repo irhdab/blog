@@ -424,4 +424,21 @@ hr {
 ::-webkit-scrollbar-thumb {
   background: var(--border-color);
 }
+.secret-banner {
+  background-color: #ffeb3b;
+  color: #000;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  border-left: 5px solid #fbc02d;
+}
+
+.secret-banner.hidden {
+  display: none !important;
+}
 
