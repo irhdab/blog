@@ -2,7 +2,7 @@
 
 A minimalist, privacy-focused blogging/pasting platform designed for quick content creation and secure sharing.
 
-[use it here](https://blog-one-dun-49.vercel.app/)
+[Demo](https://blog-one-dun-49.vercel.app/)
 
 ## Features
 
@@ -61,13 +61,6 @@ blog/
 ## Screenshot
 
 <img width="936" height="580" alt="Screenshot 2026-02-26 at 18 41 49" src="https://github.com/user-attachments/assets/20e0b914-53df-479e-bb99-999338811c31" />
-
-## Security Notice
-
-KitePad prioritizes security:
-
-- **Zero-Knowledge**: E2EE ensures the server owner can never read your encrypted content.
-- **Secure ID**: Uses random UUIDs instead of sequential numbers for public links.
 
 ## Contributing
 
