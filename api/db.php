@@ -73,103 +73,65 @@ function check_rate_limit($pdo, $key, $limit, $window_seconds)
     return true;
 }
 
-// Auto-migration: Ensure columns and tables exist
-try {
-    // Check for rate_limits table
-    $stmt = $pdo->query("SELECT 1 FROM information_schema.tables WHERE table_name = 'rate_limits'");
-    if (!$stmt->fetch()) {
-        $pdo->exec("CREATE TABLE rate_limits (
-            id SERIAL PRIMARY KEY,
-            identifier VARCHAR(255) UNIQUE NOT NULL,
-            count INTEGER DEFAULT 0,
-            last_request TIMESTAMP DEFAULT NOW()
-        )");
-        $pdo->exec("CREATE INDEX idx_rate_limits_identifier ON rate_limits(identifier)");
-        $pdo->exec("CREATE INDEX idx_rate_limits_last_request ON rate_limits(last_request)");
-    }
-
-    // Check if expires_at column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='expires_at'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN expires_at TIMESTAMP NULL");
-        $pdo->exec("CREATE INDEX idx_writings_expires_at ON writings(expires_at)");
-    }
-
-    // Check if exposure column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='exposure'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN exposure VARCHAR(20) DEFAULT 'public'");
-        $pdo->exec("CREATE INDEX idx_writings_exposure ON writings(exposure)");
-    }
-
-    // Check if password_hash column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='password_hash'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN password_hash TEXT NULL");
-    }
-
-    // Check if burn_on_read column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='burn_on_read'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN burn_on_read BOOLEAN DEFAULT FALSE");
-    }
-
-    // Check if view_count column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='view_count'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN view_count INTEGER DEFAULT 0");
-    }
-
-    // Check if view_limit column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='view_limit'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN view_limit INTEGER NULL");
-    }
-
-    // Check if is_encrypted column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='is_encrypted'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN is_encrypted BOOLEAN DEFAULT FALSE");
-    }
-
-    // Check if uid column exists (UUID for security)
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='uid'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN uid VARCHAR(36) UNIQUE NULL");
-        $pdo->exec("CREATE INDEX idx_writings_uid ON writings(uid)");
-        // Populate existing rows
-        $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
-    } else {
-        // Optional: Ensure all existing rows have UIDs if the column was added manually
-        $stmt = $pdo->query("SELECT 1 FROM writings WHERE uid IS NULL LIMIT 1");
-        if ($stmt->fetch()) {
-            $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
+function run_migrations($pdo)
+{
+    try {
+        // Check for rate_limits table
+        $stmt = $pdo->query("SELECT 1 FROM information_schema.tables WHERE table_name = 'rate_limits'");
+        if (!$stmt->fetch()) {
+            $pdo->exec("CREATE TABLE rate_limits (
+                id SERIAL PRIMARY KEY,
+                identifier VARCHAR(255) UNIQUE NOT NULL,
+                count INTEGER DEFAULT 0,
+                last_request TIMESTAMP DEFAULT NOW()
+            )");
+            $pdo->exec("CREATE INDEX idx_rate_limits_identifier ON rate_limits(identifier)");
+            $pdo->exec("CREATE INDEX idx_rate_limits_last_request ON rate_limits(last_request)");
         }
-    }
 
-    // Check if title column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='title'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN title TEXT NULL");
-    }
+        // Helper to add missing columns
+        $ensureColumn = function($pdo, $table, $column, $definition) {
+            $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name=? AND column_name=?");
+            $stmt->execute([$table, $column]);
+            if (!$stmt->fetch()) {
+                $pdo->exec("ALTER TABLE $table ADD COLUMN $column $definition");
+                return true;
+            }
+            return false;
+        };
 
-    // Check if edit_token_hash column exists
-    $stmt = $pdo->prepare("SELECT column_name FROM information_schema.columns WHERE table_name='writings' AND column_name='edit_token_hash'");
-    $stmt->execute();
-    if (!$stmt->fetch()) {
-        $pdo->exec("ALTER TABLE writings ADD COLUMN edit_token_hash TEXT NULL");
+        $ensureColumn($pdo, 'writings', 'expires_at', "TIMESTAMP NULL");
+        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_writings_expires_at ON writings(expires_at)");
+
+        $ensureColumn($pdo, 'writings', 'exposure', "VARCHAR(20) DEFAULT 'public'");
+        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_writings_exposure ON writings(exposure)");
+
+        $ensureColumn($pdo, 'writings', 'password_hash', "TEXT NULL");
+        $ensureColumn($pdo, 'writings', 'burn_on_read', "BOOLEAN DEFAULT FALSE");
+        $ensureColumn($pdo, 'writings', 'view_count', "INTEGER DEFAULT 0");
+        $ensureColumn($pdo, 'writings', 'view_limit', "INTEGER NULL");
+        $ensureColumn($pdo, 'writings', 'is_encrypted', "BOOLEAN DEFAULT FALSE");
+        
+        if ($ensureColumn($pdo, 'writings', 'uid', "VARCHAR(36) UNIQUE NULL")) {
+            $pdo->exec("CREATE INDEX idx_writings_uid ON writings(uid)");
+            $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
+        } else {
+            // Ensure all existing rows have UIDs
+            $stmt = $pdo->query("SELECT 1 FROM writings WHERE uid IS NULL LIMIT 1");
+            if ($stmt->fetch()) {
+                $pdo->exec("UPDATE writings SET uid = MD5(id::text || random()::text) WHERE uid IS NULL");
+            }
+        }
+
+        $ensureColumn($pdo, 'writings', 'title', "TEXT NULL");
+        $ensureColumn($pdo, 'writings', 'edit_token_hash', "TEXT NULL");
+
+    } catch (Exception $e) {
+        error_log("Migration error: " . $e->getMessage());
     }
-} catch (Exception $e) {
-    // Silently handle migration errors in production or log them
-    error_log("Migration error: " . $e->getMessage());
 }
+
+// Run migrations on every request for now to maintain "auto-migration" feature
+// In a larger app, this would be move to a CLI script or deployment hook.
+run_migrations($pdo);
 ?>
